@@ -159,7 +159,7 @@ def timsChoice(avg, nrolls):
 	return bestGuess;
 
 
-dirstr = 'data_sensitivity/'
+dirstr = 'data/raw/'
 skipshots = 20;
 skipsteps = 1;
 num = 0.0;
@@ -208,6 +208,7 @@ for i in range(len(runstrs)):
 	F_arg = np.zeros((0,nsamples),dtype=float);
 	D = np.zeros((0,nrolls+2),dtype=float);
 	d_data = np.zeros(nrolls+2,dtype=float);
+	diags_data = np.zeros(nrolls+2,dtype=float);
 	P = np.zeros((0,1),dtype=float);
 	sumsignal = np.zeros((1,nsamples),dtype=float);
 
@@ -314,8 +315,9 @@ for i in range(len(runstrs)):
 						d_data[-1] = timsChoice(avg,nrolls);
 						#HERE HERE HERE HERE print out  variance data v_data
 
-						v_data[0] = y_final*delayscales[i];
-						v_data[1:-1] = std[:];
+						diags_data[0] = y_final*delayscales[i];
+						diags_data[1] = y_final*delayscales[i];
+						diags_data[1:-1] = std[:];
 						#print(d_data)
 
 						eb_data = (ebResults.ebeamL3Energy() , ebResults.ebeamCharge(), ebResults.ebeamEnergyBC1(), ebResults.ebeamEnergyBC2(), ebResults.ebeamLTU250(), ebResults.ebeamLTU450(), ebResults.ebeamLTUAngX(), ebResults.ebeamLTUAngY(), ebResults.ebeamLTUPosX(), ebResults.ebeamLTUPosY(), ebResults.ebeamUndAngX(), ebResults.ebeamUndAngY(), ebResults.ebeamUndPosX(), ebResults.ebeamUndPosY(), ebResults.ebeamPkCurrBC1(), ebResults.ebeamEnergyBC1(), ebResults.ebeamPkCurrBC2(), ebResults.ebeamEnergyBC2(), ebResults.ebeamDumpCharge());
@@ -323,6 +325,7 @@ for i in range(len(runstrs)):
 						p_data = np.concatenate((eb_data,gd_data));
 						if len(P) < len(p_data):
 							P = np.zeros((0,len(p_data)),dtype=float);
+						diagnostics = np.row_stack((diagnostics,diags_data));
 						D = np.row_stack((D,d_data));
 						P = np.row_stack((P,p_data));
 
@@ -338,6 +341,8 @@ for i in range(len(runstrs)):
 				np.savetxt(filename,F_abs.T,fmt='%.6e');
 				filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
 				np.savetxt(filename,D,fmt='%.6e');
+				filename=dirstr + expstr + '_r' + runstr + '_diagnostics.dat';
+				np.savetxt(filename,diagnostics,fmt='%.6e');
 				filename=dirstr + expstr + '_r' + runstr + '_sumsignal.dat';
 				np.savetxt(filename,sumsignal,fmt='%.6e');
 	#for plot
