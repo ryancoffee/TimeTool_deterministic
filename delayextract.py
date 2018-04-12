@@ -108,6 +108,16 @@ def timsChoice(avg, nrolls):
 
 	return bestGuess;
 
+def slope2delay(s):
+	# based on run 74 strong lasing. No attenuation
+	x0=-6;
+	x = s-x0;
+	a = 2.35975;#          +/- 0.008853     (0.3752%)
+	b=-0.7;#
+	c = 0.000786735#      +/- 0.0001925    (24.47%)
+	d = -5.3426e-06#      +/- 1.655e-07    (3.097%)
+	return a+b*x+c*np.power(x,int(3))+d*np.power(x,int(7));
+
 
 dirstr = 'data/raw/'
 skipshots = 10;
