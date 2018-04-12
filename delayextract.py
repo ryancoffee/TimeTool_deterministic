@@ -114,8 +114,8 @@ def slope2delay(s):
 	x = s-x0;
 	a = 2.35975;#          +/- 0.008853     (0.3752%)
 	b=-0.7;#
-	c = 0.000786735#      +/- 0.0001925    (24.47%)
-	d = -5.3426e-06#      +/- 1.655e-07    (3.097%)
+	c = 0.000786735; #      +/- 0.0001925    (24.47%)
+	d = -5.3426e-06; #      +/- 1.655e-07    (3.097%)
 	return a+b*x+c*np.power(x,int(3))+d*np.power(x,int(7));
 
 
@@ -168,11 +168,15 @@ for i in range(len(runstrs)):
 	F_abs = np.zeros((0,nsamples),dtype=float);
 	F_arg = np.zeros((0,nsamples),dtype=float);
 	d_data_hdr = '';
-	d_data = np.zeros(nrolls+5,dtype=float);
+	d_data = np.zeros(nrolls+6,dtype=float);
 	D = np.zeros((0,d_data.shape[0]),dtype=float);
 	diags_data = np.zeros(nrolls+nslopes+3,dtype=float);
 	diagnostics_hdr = '';
 	diagnostics = np.zeros((0,diags_data.shape[0]),dtype=float);
+	gd_data = np.zeros(6,dtype=float);
+	G = np.zeros((0,gd_data.shape[0]),dtype=float);
+	eb_data = np.zeros(19,dtype=float);
+	E = np.zeros((0,eb_data.shape[0]),dtype=float);
 	P = np.zeros((0,1),dtype=float);
 	sumsignal = np.zeros((1,nsamples),dtype=float);
 
@@ -268,12 +272,13 @@ for i in range(len(runstrs)):
 						avg = np.average(dargs[:,:nslopes],axis=1,weights = ft_abs[1:nslopes+1]);
 						avg.shape=(avg.shape[0],1);
 						#print('avg.shape = ',avg.shape)
-						d_data_hdr = 'delay\ttimsChoice\tourChoice\tmincoord\tdelay\tavg'
+						d_data_hdr = 'delay\ttimsChoice\tourChoice\tmincoord\tdelay\tgd11\tavgs'
 						d_data[0] = y_final*delayscales[i];
 						d_data[1] = timsChoice(avg,nrolls);
 						d_data[2],d_data[3] = ourChoice(dargs[:,:nslopes],ft_abs[1:nslopes+1]);
 						d_data[4] = slope2delay(d_data[2]);
-						d_data[5:] = avg[:,0];
+						d_data[5] = gdResults.f_11_ENRC();
+						d_data[6:] = avg[:,0];
 						#d_data[-1] = chooseslope(avg,nrolls);
 						#HERE HERE HERE HERE print out  variance data v_data
 
@@ -292,12 +297,10 @@ for i in range(len(runstrs)):
 
 						eb_data = (ebResults.ebeamL3Energy() , ebResults.ebeamCharge(), ebResults.ebeamEnergyBC1(), ebResults.ebeamEnergyBC2(), ebResults.ebeamLTU250(), ebResults.ebeamLTU450(), ebResults.ebeamLTUAngX(), ebResults.ebeamLTUAngY(), ebResults.ebeamLTUPosX(), ebResults.ebeamLTUPosY(), ebResults.ebeamUndAngX(), ebResults.ebeamUndAngY(), ebResults.ebeamUndPosX(), ebResults.ebeamUndPosY(), ebResults.ebeamPkCurrBC1(), ebResults.ebeamEnergyBC1(), ebResults.ebeamPkCurrBC2(), ebResults.ebeamEnergyBC2(), ebResults.ebeamDumpCharge());
 						gd_data = ( gdResults.f_11_ENRC(), gdResults.f_12_ENRC(), gdResults.f_21_ENRC(), gdResults.f_22_ENRC(), gdResults.f_63_ENRC(), gdResults.f_64_ENRC() );
-						p_data = np.concatenate((eb_data,gd_data));
-						if len(P) < len(p_data):
-							P = np.zeros((0,len(p_data)),dtype=float);
-						diagnostics = np.row_stack((diagnostics,diags_data));
 						D = np.row_stack((D,d_data));
-						P = np.row_stack((P,p_data));
+						G = np.row_stack((G,gd_data));
+						E = np.row_stack((E,eb_data));
+						diagnostics = np.row_stack((diagnostics,diags_data));
 
 			F_abs = np.row_stack((F_abs,ft_abs));
 			F_arg = np.row_stack((F_arg,ft_arg));
@@ -310,9 +313,13 @@ for i in range(len(runstrs)):
 				filename="%s/%s_r%s_%i_%i_steps_ft_abs.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
 				np.savetxt(filename,F_abs.T,fmt='%.6e');
 				filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
-				np.savetxt(filename,D,fmt='%.6e');
+				np.savetxt(filename,D,fmt='%.6e',header=d_data_hdr);
 				filename=dirstr + expstr + '_r' + runstr + '_diagnostics.dat';
 				np.savetxt(filename,diagnostics,fmt='%.6e');
+				filename=dirstr + expstr + '_r' + runstr + '_eb.dat';
+				np.savetxt(filename,E,fmt='%.6e');
+				filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
+				np.savetxt(filename,G,fmt='%.6e');
 				filename=dirstr + expstr + '_r' + runstr + '_sumsignal.dat';
 				np.savetxt(filename,sumsignal,fmt='%.6e');
 	#for plot
@@ -331,10 +338,12 @@ for i in range(len(runstrs)):
 	np.savetxt(filename,F_abs.T,fmt='%.6e');
 	filename="%s/%s_r%s_%i_%i_steps_ft_arg.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
 	np.savetxt(filename,F_arg.T,fmt='%.6e');
-	filename=dirstr + expstr + '_r' + runstr + '_params.dat';
-	np.savetxt(filename,P,fmt='%.6e');
 	filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
-	np.savetxt(filename,D,fmt='%.6e');
+	np.savetxt(filename,D,fmt='%.6e',header=d_data_hdr);
+	filename=dirstr + expstr + '_r' + runstr + '_eb.dat';
+	np.savetxt(filename,E,fmt='%.6e');
+	filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
+	np.savetxt(filename,G,fmt='%.6e');
 	filename=dirstr + expstr + '_r' + runstr + '_diagnostics.dat';
 	np.savetxt(filename,diagnostics,fmt='%.6e');
 	filename=dirstr + expstr + '_r' + runstr + '_wavelegths.dat';
