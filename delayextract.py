@@ -10,6 +10,13 @@ from cmath import rect;
 import pdb as debug;
 
 nprect = np.vectorize(rect);
+startstep = 30;
+
+def weighted_rms(vector,weights,avg):
+	if len(avg.shape)==1:
+		avg.shape = (avg.shape[0],1);
+	result = np.sqrt(np.average(np.power(vector-avg,int(2)),axis=1,weights=weights));
+	return (result,np.argmin(result));
 
 def i2lam(i):
 	#lset = 600nm for amox28216 for lots of the runs.  Chedck the spectrometer wavelength
@@ -68,73 +75,16 @@ def rewrap(vec,low,high,step):
 def between(val,low,high):
 	return np.logical_and(val>=low,val<high);
 
-"""
-def chooseslope(v,n):
-	vec = np.copy(v);
-	step = 2.*np.pi/n;
-	wholestep = 2*np.pi;
-	win = 0.05*step;
-	#Need to start counting imposed offsets.
-	if between(vec[0],-step,0):
-		if between(vec[1]+step,vec[0]-win,vec[0]+win):
-			vec[1] += step;
-			if between(vec[2]+2*step,vec[1]-win,vec[1]+win):
-				vec[2] += 2*step;
-				if between(vec[3]+3*step - wholestep,vec[2]-win,vec[2]+win):
-					vec[3] += 3*step - wholestep;
-					if between(vec[4]+4*step - wholestep,vec[3]-win,vec[3]+win):
-						vec[4] += 4*step - wholestep;
-						return np.mean(vec[:5]);
-					return np.mean(vec[:4]);
-				return np.mean(vec[:3]);
-			return np.mean(vec[:2]);
-		return np.mean(vec[:1]);
-	else:
-		vec = np.roll(vec,1);
-		if between(vec[0] - step,-2*step,-1*step):
-			vec[0] -= step;
-			if between(vec[1] + 0*step - wholestep, vec[0]-win,vec[0]+win):
-				vec[1] += 0*step - wholestep;
-				if between(vec[2] + 1*step - wholestep, vec[1]-win,vec[1]+win):
-					vec[2] += 1*step - wholestep;
-					if between(vec[3] + 2*step - wholestep, vec[2]-win,vec[2]+win):
-						return np.mean(vec[:4]);
-					return np.mean(vec[:3]);
-				return np.mean(vec[:2]);
-			return np.mean(vec[:1]);
-		else:
-			vec = np.roll(vec,1);
-			if between(vec[0] + -2*step, -3*step, -2*step):
-				vec[0] -= 2*step ;
-				if between(vec[1] + 0*step - wholestep, vec[0]-win,vec[0]+win):
-					vec[1] -= wholestep;
-					if between(vec[2] + 1*step - wholestep, vec[1]-win,vec[1]+win):
-						vec[2] += 1*step - wholestep;
-						if between(vec[3] + 2*step - wholestep, vec[2]-win,vec[2]+win):
-							vec[3] += 2*step - wholestep;
-							if between(vec[4] + 3*step - wholestep, vec[3]-win,vec[3]+win):
-								vec[4] += 3*step - wholestep;
-								return np.mean(vec[:5]);
-							return np.mean(vec[:4]);
-						return np.mean(vec[:3]);
-					return np.mean(vec[:2]);
-				return np.mean(vec[:1]);
-			else:
-				vec = np.roll(vec,1);
-				if between(vec[0] -3*step , -4*step, -3*step):
-					vec[0] -= 3*step;
-					if between(vec[1] -2*step , vec[0]-win,vec[0]+win):
-						vec[1] -= 2*step;
-						#I think I'm lost here.
-						if between(vec[1] -2*step , vec[0]-win,vec[0]+win):
-							vec[2] -= wholestep;
-							return np.mean(vec[:3]);
-						return np.mean(vec[:2]);
-					return np.mean(vec[:1]);
-				else:
-					return 20.
-	return 10.;
-"""
+def ourChoice(dargs,weights):
+	rollstep = np.pi*2./float(dargs.shape[0]);
+	avg = np.average(dargs,axis=1,weights = weights);
+	rmsvec,mincoord = weighted_rms(dargs,weights,avg);
+	#print(avg.shape);
+	choice = avg[mincoord];
+	choice += mincoord*rollstep
+	while choice > rollstep: choice -= 2.*np.pi;
+	rms=rmsvec[mincoord];
+	return choice,rms;
 
 def timsChoice(avg, nrolls):
 	step = 2 * np.pi / nrolls;
@@ -160,7 +110,7 @@ def timsChoice(avg, nrolls):
 
 
 dirstr = 'data/raw/'
-skipshots = 20;
+skipshots = 10;
 skipsteps = 1;
 num = 0.0;
 
@@ -174,7 +124,8 @@ dets = ['OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
 delayscales = (1.e3,1.e3,1.e3,1.e3,1.e3);#,1.e12); # converts to picoseconds
 
 nsamples = 1024;
-nrolls = 8;
+nrolls = 16;
+nslopes = 4;
 nhist = 256;
 
 
@@ -208,7 +159,8 @@ for i in range(len(runstrs)):
 	F_arg = np.zeros((0,nsamples),dtype=float);
 	D = np.zeros((0,nrolls+2),dtype=float);
 	d_data = np.zeros(nrolls+2,dtype=float);
-	diags_data = np.zeros(nrolls+2,dtype=float);
+	diags_data = np.zeros(nrolls+nslopes+3,dtype=float);
+	diagnostics = np.zeros((0,diags_data.shape[0]),dtype=float);
 	P = np.zeros((0,1),dtype=float);
 	sumsignal = np.zeros((1,nsamples),dtype=float);
 
@@ -218,7 +170,8 @@ for i in range(len(runstrs)):
 		nrefshots = int(0);
 		nsumevents = int(0);
 		for nstep,step in enumerate(run.steps()):
-			print("checking step ",nstep);
+			print('checking step ',nstep);
+			#if nstep!=startstep: continue;
 			if nstep%skipsteps==0:
 				pvList = cd().pvControls();
 				ft_abs = np.zeros((1,nsamples),dtype=float);
@@ -288,10 +241,6 @@ for i in range(len(runstrs)):
 
 						lineoutFT = FFT(np.roll(lineout,len(lineout)//2) );
 						rollerFT = FFT(roller,axis=1);
-						"""
-						Try dividing by the sum of all signals from the entire scan.
-						This might get rid of the etalon
-						"""
 						#ft_abs = np.copy(np.abs(lineoutFT));
 						#ft_arg = np.copy(np.angle(lineoutFT));
 						ft_abs = np.copy(np.abs(rollerFT[1,:]));
@@ -304,20 +253,26 @@ for i in range(len(runstrs)):
 						#lineoutback = np.real( IFFT(rollerFT[1,:]) );
 						R_back = np.row_stack((R_back,lineoutback));
 						
-						avg = np.average(dargs,axis=1,weights = ft_abs[1:]);
-						avg.shape = (dargs.shape[0],1);
-						std = np.power(dargs-avg,int(2));
-						#avg = rewrap(avg,-2.*np.pi/nrolls,0.,2.*np.pi/nrolls);
-						debug.set_trace();
+						avg = np.average(dargs[:,:nslopes],axis=1,weights = ft_abs[1:nslopes+1]);
+						avg.shape=(avg.shape[0],1);
+						#print('avg.shape = ',avg.shape)
 						d_data[0] = y_final*delayscales[i];
-						d_data[1:-1] = avg[:];
+						d_data[1] = timsChoice(avg,nrolls);
+						d_data[2:] = avg[:,0];
 						#d_data[-1] = chooseslope(avg,nrolls);
-						d_data[-1] = timsChoice(avg,nrolls);
 						#HERE HERE HERE HERE print out  variance data v_data
 
+						#debug.set_trace();
+						#print(dargs[:,:3]);
+						#print(ft_abs[1:4]);
+						#print(weighted_rms(dargs,ft_abs[1:],avg));
+						rmsvec,mincoord = weighted_rms(dargs,ft_abs[1:],avg);
+
+						#temp = np.row_stack((dargs[mincoord,:],ft_abs[1:],ft_arg[1:]));np.set_printoptions(suppress=True);print(temp[:,:30].T)
+
 						diags_data[0] = y_final*delayscales[i];
-						diags_data[1] = y_final*delayscales[i];
-						diags_data[1:-1] = std[:];
+						diags_data[1],diags_data[2] = ourChoice(dargs[:,:nslopes],ft_abs[1:nslopes+1]);
+						diags_data[3:] = np.concatenate((rmsvec,dargs[mincoord,:nslopes]));#rmsvec;# dargs[0,:10];
 						#print(d_data)
 
 						eb_data = (ebResults.ebeamL3Energy() , ebResults.ebeamCharge(), ebResults.ebeamEnergyBC1(), ebResults.ebeamEnergyBC2(), ebResults.ebeamLTU250(), ebResults.ebeamLTU450(), ebResults.ebeamLTUAngX(), ebResults.ebeamLTUAngY(), ebResults.ebeamLTUPosX(), ebResults.ebeamLTUPosY(), ebResults.ebeamUndAngX(), ebResults.ebeamUndAngY(), ebResults.ebeamUndPosX(), ebResults.ebeamUndPosY(), ebResults.ebeamPkCurrBC1(), ebResults.ebeamEnergyBC1(), ebResults.ebeamPkCurrBC2(), ebResults.ebeamEnergyBC2(), ebResults.ebeamDumpCharge());
@@ -365,6 +320,8 @@ for i in range(len(runstrs)):
 	np.savetxt(filename,P,fmt='%.6e');
 	filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
 	np.savetxt(filename,D,fmt='%.6e');
+	filename=dirstr + expstr + '_r' + runstr + '_diagnostics.dat';
+	np.savetxt(filename,diagnostics,fmt='%.6e');
 	filename=dirstr + expstr + '_r' + runstr + '_wavelegths.dat';
 	np.savetxt(filename,lam,fmt='%.6e');
 	filename=dirstr + expstr + '_r' + runstr + '_sumsignal.dat';
