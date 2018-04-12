@@ -127,7 +127,7 @@ num = 0.0;
 printsamples = (True,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
 ratio = .1; # how to accumulate a rolling average for referencing
 subrefs = (True,True,True,True,True,False,False);
-runstrs = ['74','75','76','77','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+runstrs = ['74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
 vwins = [(475,525),(475,525),(475,525),(475,525),(475,525)];#[(440,450)];#,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
 expstrs = [str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
 dets = ['OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
@@ -167,9 +167,11 @@ for i in range(len(runstrs)):
 	R_back = np.zeros((0,nsamples),dtype=float);
 	F_abs = np.zeros((0,nsamples),dtype=float);
 	F_arg = np.zeros((0,nsamples),dtype=float);
-	D = np.zeros((0,nrolls+2),dtype=float);
-	d_data = np.zeros(nrolls+2,dtype=float);
+	d_data_hdr = '';
+	d_data = np.zeros(nrolls+5,dtype=float);
+	D = np.zeros((0,d_data.shape[0]),dtype=float);
 	diags_data = np.zeros(nrolls+nslopes+3,dtype=float);
+	diagnostics_hdr = '';
 	diagnostics = np.zeros((0,diags_data.shape[0]),dtype=float);
 	P = np.zeros((0,1),dtype=float);
 	sumsignal = np.zeros((1,nsamples),dtype=float);
@@ -266,9 +268,12 @@ for i in range(len(runstrs)):
 						avg = np.average(dargs[:,:nslopes],axis=1,weights = ft_abs[1:nslopes+1]);
 						avg.shape=(avg.shape[0],1);
 						#print('avg.shape = ',avg.shape)
+						d_data_hdr = 'delay\ttimsChoice\tourChoice\tmincoord\tdelay\tavg'
 						d_data[0] = y_final*delayscales[i];
 						d_data[1] = timsChoice(avg,nrolls);
-						d_data[2:] = avg[:,0];
+						d_data[2],d_data[3] = ourChoice(dargs[:,:nslopes],ft_abs[1:nslopes+1]);
+						d_data[4] = slope2delay(d_data[2]);
+						d_data[5:] = avg[:,0];
 						#d_data[-1] = chooseslope(avg,nrolls);
 						#HERE HERE HERE HERE print out  variance data v_data
 
