@@ -128,6 +128,7 @@ printsamples = (True,True,True,True,True,False,False); # tend to use this to bri
 ratio = .1; # how to accumulate a rolling average for referencing
 subrefs = (True,True,True,True,True,False,False);
 runstrs = ['74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+attens = [1.0,0.007,0.06,0.04,0.98]# in microjoules
 vwins = [(475,525),(475,525),(475,525),(475,525),(475,525)];#[(440,450)];#,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
 expstrs = [str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
 dets = ['OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
@@ -147,6 +148,7 @@ w_weights = weiner_weights(w_weights);
 for i in range(len(runstrs)):
 	runstr = runstrs[i];
 	expstr = expstrs[i];
+	atten = attens[i];
 	vwin = vwins[i];
 	num = vwin[1]-vwin[0];
 	printsample = printsamples[i];
@@ -167,17 +169,18 @@ for i in range(len(runstrs)):
 	R_back = np.zeros((0,nsamples),dtype=float);
 	F_abs = np.zeros((0,nsamples),dtype=float);
 	F_arg = np.zeros((0,nsamples),dtype=float);
-	d_data_hdr = '';
-	d_data = np.zeros(nrolls+6,dtype=float);
-	D = np.zeros((0,d_data.shape[0]),dtype=float);
-	diags_data = np.zeros(nrolls+nslopes+3,dtype=float);
-	diagnostics_hdr = '';
-	diagnostics = np.zeros((0,diags_data.shape[0]),dtype=float);
-	gd_data = np.zeros(6,dtype=float);
-	G = np.zeros((0,gd_data.shape[0]),dtype=float);
+	eb_data_hdr = '';
 	eb_data = np.zeros(19,dtype=float);
 	E = np.zeros((0,eb_data.shape[0]),dtype=float);
-	P = np.zeros((0,1),dtype=float);
+	gd_data_hdr = '';
+	gd_data = np.zeros(6,dtype=float);
+	G = np.zeros((0,gd_data.shape[0]),dtype=float);
+	d_data_hdr = '';
+	d_data = np.zeros(6+gd_data.shape[0],dtype=float);
+	D = np.zeros((0,d_data.shape[0]),dtype=float);
+	diags_data = np.zeros(3+2*nrolls+nslopes,dtype=float);
+	diagnostics_hdr = '';
+	diagnostics = np.zeros((0,diags_data.shape[0]),dtype=float);
 	sumsignal = np.zeros((1,nsamples),dtype=float);
 
 	'''The third edition: take the average of each step and convert both axes to the right units. '''
@@ -271,16 +274,18 @@ for i in range(len(runstrs)):
 						
 						avg = np.average(dargs[:,:nslopes],axis=1,weights = ft_abs[1:nslopes+1]);
 						avg.shape=(avg.shape[0],1);
-						#print('avg.shape = ',avg.shape)
-						d_data_hdr = 'delay\ttimsChoice\tourChoice\tmincoord\tdelay\tgd11\tavgs'
+
+						eb_data = (ebResults.ebeamL3Energy() , ebResults.ebeamCharge(), ebResults.ebeamEnergyBC1(), ebResults.ebeamEnergyBC2(), ebResults.ebeamLTU250(), ebResults.ebeamLTU450(), ebResults.ebeamLTUAngX(), ebResults.ebeamLTUAngY(), ebResults.ebeamLTUPosX(), ebResults.ebeamLTUPosY(), ebResults.ebeamUndAngX(), ebResults.ebeamUndAngY(), ebResults.ebeamUndPosX(), ebResults.ebeamUndPosY(), ebResults.ebeamPkCurrBC1(), ebResults.ebeamEnergyBC1(), ebResults.ebeamPkCurrBC2(), ebResults.ebeamEnergyBC2(), ebResults.ebeamDumpCharge());
+						eb_data_hdr = 'ebResults.ebeamL3Energy()\tebResults.ebeamCharge()\tebResults.ebeamEnergyBC1()\tebResults.ebeamEnergyBC2()\tebResults.ebeamLTU250()\tebResults.ebeamLTU450()\tebResults.ebeamLTUAngX()\tebResults.ebeamLTUAngY()\tebResults.ebeamLTUPosX()\tebResults.ebeamLTUPosY()\tebResults.ebeamUndAngX()\tebResults.ebeamUndAngY()\tebResults.ebeamUndPosX()\tebResults.ebeamUndPosY()\tebResults.ebeamPkCurrBC1()\tebResults.ebeamEnergyBC1()\tebResults.ebeamPkCurrBC2()\tebResults.ebeamEnergyBC2()\tebResults.ebeamDumpCharge()';
+						gd_data_hdr = 'gdResults.f_11_ENRC()\tgdResults.f_12_ENRC()\tgdResults.f_21_ENRC()\tgdResults.f_22_ENRC()\tgdResults.f_63_ENRC()\tgdResults.f_64_ENRC()';
+						gd_data = ( gdResults.f_11_ENRC(), gdResults.f_12_ENRC(), gdResults.f_21_ENRC(), gdResults.f_22_ENRC(), gdResults.f_63_ENRC(), gdResults.f_64_ENRC() );
+						d_data_hdr = 'delay\ttimsChoice\tourChoice\trms\tdelay\tattenuation\tgd_11\t12\t21\t22\t63\t64'
 						d_data[0] = y_final*delayscales[i];
 						d_data[1] = timsChoice(avg,nrolls);
 						d_data[2],d_data[3] = ourChoice(dargs[:,:nslopes],ft_abs[1:nslopes+1]);
 						d_data[4] = slope2delay(d_data[2]);
-						d_data[5] = gdResults.f_11_ENRC();
-						d_data[6:] = avg[:,0];
-						#d_data[-1] = chooseslope(avg,nrolls);
-						#HERE HERE HERE HERE print out  variance data v_data
+						d_data[5] = atten;
+						d_data[6:] = gd_data;
 
 						#debug.set_trace();
 						#print(dargs[:,:3]);
@@ -292,11 +297,8 @@ for i in range(len(runstrs)):
 
 						diags_data[0] = y_final*delayscales[i];
 						diags_data[1],diags_data[2] = ourChoice(dargs[:,:nslopes],ft_abs[1:nslopes+1]);
-						diags_data[3:] = np.concatenate((rmsvec,dargs[mincoord,:nslopes]));#rmsvec;# dargs[0,:10];
+						diags_data[3:] = np.concatenate((avg[:,0],rmsvec,dargs[mincoord,:nslopes]));#rmsvec;# dargs[0,:10];
 						#print(d_data)
-
-						eb_data = (ebResults.ebeamL3Energy() , ebResults.ebeamCharge(), ebResults.ebeamEnergyBC1(), ebResults.ebeamEnergyBC2(), ebResults.ebeamLTU250(), ebResults.ebeamLTU450(), ebResults.ebeamLTUAngX(), ebResults.ebeamLTUAngY(), ebResults.ebeamLTUPosX(), ebResults.ebeamLTUPosY(), ebResults.ebeamUndAngX(), ebResults.ebeamUndAngY(), ebResults.ebeamUndPosX(), ebResults.ebeamUndPosY(), ebResults.ebeamPkCurrBC1(), ebResults.ebeamEnergyBC1(), ebResults.ebeamPkCurrBC2(), ebResults.ebeamEnergyBC2(), ebResults.ebeamDumpCharge());
-						gd_data = ( gdResults.f_11_ENRC(), gdResults.f_12_ENRC(), gdResults.f_21_ENRC(), gdResults.f_22_ENRC(), gdResults.f_63_ENRC(), gdResults.f_64_ENRC() );
 						D = np.row_stack((D,d_data));
 						G = np.row_stack((G,gd_data));
 						E = np.row_stack((E,eb_data));
@@ -317,9 +319,9 @@ for i in range(len(runstrs)):
 				filename=dirstr + expstr + '_r' + runstr + '_diagnostics.dat';
 				np.savetxt(filename,diagnostics,fmt='%.6e');
 				filename=dirstr + expstr + '_r' + runstr + '_eb.dat';
-				np.savetxt(filename,E,fmt='%.6e');
+				np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr);
 				filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
-				np.savetxt(filename,G,fmt='%.6e');
+				np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr);
 				filename=dirstr + expstr + '_r' + runstr + '_sumsignal.dat';
 				np.savetxt(filename,sumsignal,fmt='%.6e');
 	#for plot
@@ -341,9 +343,9 @@ for i in range(len(runstrs)):
 	filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
 	np.savetxt(filename,D,fmt='%.6e',header=d_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_eb.dat';
-	np.savetxt(filename,E,fmt='%.6e');
+	np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
-	np.savetxt(filename,G,fmt='%.6e');
+	np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_diagnostics.dat';
 	np.savetxt(filename,diagnostics,fmt='%.6e');
 	filename=dirstr + expstr + '_r' + runstr + '_wavelegths.dat';
