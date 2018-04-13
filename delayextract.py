@@ -151,6 +151,8 @@ for i in range(len(runstrs)):
 	atten = attens[i];
 	vwin = vwins[i];
 	num = vwin[1]-vwin[0];
+	nmidshots = int(0);
+	ngoodshots = int(0);
 	printsample = printsamples[i];
 	subref = subrefs[i];
 	dsourcestr = 'exp=' + expstr + ':run=' + runstr + ':smd';
@@ -287,6 +289,13 @@ for i in range(len(runstrs)):
 						d_data[5] = atten;
 						d_data[6:] = gd_data;
 
+						''' for Diling '''
+						if ((d_data[0] > -.5) & (d_data[0] < .5)):
+							nmidshots += 1;
+							if (d_data[3] < .75):
+								ngoodshots +=1;
+						'''============'''
+
 						#debug.set_trace();
 						#print(dargs[:,:3]);
 						#print(ft_abs[1:4]);
@@ -314,6 +323,7 @@ for i in range(len(runstrs)):
 				np.savetxt(filename,R_back.T,fmt='%i');
 				filename="%s/%s_r%s_%i_%i_steps_ft_abs.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
 				np.savetxt(filename,F_abs.T,fmt='%.6e');
+				d_data_hdr += '\tgood %i\t total %i' % (ngoodshots,nmidshots);
 				filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
 				np.savetxt(filename,D,fmt='%.6e',header=d_data_hdr);
 				filename=dirstr + expstr + '_r' + runstr + '_diagnostics.dat';
@@ -340,6 +350,7 @@ for i in range(len(runstrs)):
 	np.savetxt(filename,F_abs.T,fmt='%.6e');
 	filename="%s/%s_r%s_%i_%i_steps_ft_arg.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
 	np.savetxt(filename,F_arg.T,fmt='%.6e');
+	d_data_hdr += '\tgood %i\t total %i' % (ngoodshots,nmidshots);
 	filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
 	np.savetxt(filename,D,fmt='%.6e',header=d_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_eb.dat';
