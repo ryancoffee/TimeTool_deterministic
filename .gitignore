@@ -1,2 +1,9 @@
 data/raw/*dat*
 nohup*
+*.log
+data/raw/*.xcf
+data/raw/*.tiff
+data/raw/*.TIFF
+data/raw/*.PNG
+data/raw/*.png
+data/raw/*.jpg

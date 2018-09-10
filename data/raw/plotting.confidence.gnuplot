@@ -17,7 +17,7 @@ set timefmt x2 "%d/%m/%y,%H:%M"
 set x2data 
 set boxwidth
 set style fill  empty border
-set style rectangle back fc lt -3 fillstyle   solid 1.00 border lt -1
+set style rectangle back fc  lt -3 fillstyle   solid 1.00 border lt -1
 set style circle radius graph 0.02, first 0, 0 
 set style ellipse size graph 0.05, 0.03, first 0 angle 0 units xy
 set dummy x,y
@@ -43,11 +43,6 @@ unset style line
 unset style arrow
 set style histogram clustered gap 2 title  offset character 0, 0, 0
 unset logscale
-set logscale x 10
-set logscale y 10
-set logscale x2 10
-set logscale y2 10
-set logscale z 10
 set offsets 0, 0, 0, 0
 set pointsize 1
 set pointintervalbox 1
@@ -109,13 +104,13 @@ set xlabel ""
 set xlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  offset character 0, 0, 0 font "" textcolor lt -1 norotate
-set xrange [ 1.00000e-06 : * ] noreverse nowriteback
+set xrange [ * : * ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback
 set ylabel "" 
 set ylabel  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
 set y2label "" 
 set y2label  offset character 0, 0, 0 font "" textcolor lt -1 rotate by -270
-set yrange [ 1.00000e-06 : * ] noreverse nowriteback
+set yrange [ * : * ] noreverse nowriteback
 set y2range [ * : * ] noreverse nowriteback
 set zlabel "" 
 set zlabel  offset character 0, 0, 0 font "" textcolor lt -1 norotate
@@ -142,10 +137,48 @@ set fontpath
 set psdir
 set fit noerrorvariables
 f(x)=a*x+b
+file(x)=sprintf('amox28216_r%i_delays.dat',x)
 GNUTERM = "x11"
-file = "amox28216_r77_delays.dat"
 a = 1
-GPFUN_f = "f(x)=a*x+b"
 b = 0.003
-plot file u 7:8:12 palette w points,file u ($7*$6):($8*$6):12,file u 11:12
+GPFUN_f = "f(x)=a*x+b"
+file = "amox28216_r77_delays.dat"
+GPFUN_file = "file(x)=sprintf('amox28216_r%i_delays.dat',x)"
+mj2mjpc2(x)=x/(pi*(.05**2))
+set term png enhanced size 800,800
+set output 'plotting.confidence.narrow.png'
+set xrange [1e-1:200]
+set log x
+set xlabel 'x-ray fluence [mJ/cm^2]'
+set ylabel 'rms of phase slope' offset 1,0
+set yrange [0:1.8]
+set ytics mirror
+set cblabel 'delay [ps]'
+set multiplot
+set size 1,.5
+set origin 0,.5
+set lmargin screen .1
+set rmargin screen .8
+set colorbox origin .875,.1 size .05,.8
+t0=.5
+plot 	file(77) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:.2):1 ps variable palette pt 7 notitle,\
+	file(74) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:.2):1 ps variable palette pt 7 notitle,\
+	file(75) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:.2):1 ps variable palette pt 7 notitle,\
+	file(76) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:.2):1 ps variable palette pt 7 notitle,\
+	file(77) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:0.0):1 ps variable palette pt 7 notitle,\
+	file(74) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:0.0):1 ps variable palette pt 7 notitle,\
+	file(75) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:0.0):1 ps variable palette pt 7 notitle,\
+	file(76) u (mj2mjpc2($6*$7)):4:(abs($1-t0)<0.5?1:0.0):1 ps variable palette pt 7 notitle
+	#file(76) u (mj2mjpc2($6*$7)):4:(1./(abs($1-t0)+.75)):1 ps variable palette pt 7 notitle
+set origin 0,0
+set size 1,.5
+set yrange [0:110]
+set ylabel '% good shots (-0.5 ps,0.5 ps)' offset 1,0
+set ytics 0,25,100
+set key bottom right
+plot 'GiacomoPlot.spatial.dat' w linespoints pt 6 ps 1 title 'spatial',\
+	'GiacomoPlot.spectral.dat' w linespoints pt 6 ps 1 title 'spectral',\
+	'goodshots.dat' u 1:($2*100) w linespoints pt 7 ps 1 title 'interference'
+unset multiplot
+								    
 #    EOF
