@@ -20,7 +20,7 @@ def weighted_rms(vector,weights,avg):
 
 def i2lam(i):
 	#lset = 600nm for amox28216 for lots of the runs.  Chedck the spectrometer wavelength
-        lset=600; 
+        lset=500; 
         nmPi=0.217;
         seterr=1.0051;
         return nmPi*i + seterr*lset - 110.072;
@@ -115,27 +115,26 @@ def slope2delay(s):
 	a = 2.35975;#          +/- 0.008853     (0.3752%)
 	b=-0.7;#
 	c = 0.000786735; #      +/- 0.0001925    (24.47%)
-	d = -5.3426e-06; #      +/- 1.655e-07    (3.097%)
-	return a+b*x+c*np.power(x,int(3))+d*np.power(x,int(7));
+	d = -5.3426e-06; #      +/- 1.655e-07    (3.097%) return a+b*x+c*np.power(x,int(3))+d*np.power(x,int(7));
 
 
 dirstr = 'data/raw/'
-skipshots = 10;
+skipshots = 1;
 skipsteps = 1;
 num = 0.0;
 
 printsamples = (True,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
 ratio = .1; # how to accumulate a rolling average for referencing
-subrefs = (True,True,True,True,True,False,False);
-runstrs = ['74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
-attens = [1.0,0.007,0.06,0.04,0.98]# in microjoules
-vwins = [(480,500),(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
+subrefs = (False,False)#,True,True,True,True,True,False,False);
+runstrs = ['124','120']#'74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+delayscales = [1.e12,1.e12]
+attens = [1.]#[1.0,0.007,0.06,0.04,0.98]# in microjoules
+vwins = [(610,640),(610,640)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
 #runstrs = ['65','70'];
 #attens = [1.0,1.0]# in microjoules
 #vwins = [(480,500),(480,500)];
-expstrs = [str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
-dets = ['OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
-delayscales = (1.e3,1.e3,1.e3,1.e3,1.e3);#,1.e12); # converts to picoseconds
+expstrs = [str('xppc00117'),str('xppc00117')]#str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
+dets = ['opal_1','opal_1']#,'OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
 
 nsamples = 1024;
 nrolls = 16;
@@ -162,7 +161,7 @@ for i in range(len(runstrs)):
 	print("running:\t",dsourcestr)
 	ds = psana.DataSource(dsourcestr);
 	print(psana.DetNames('detectors'));
-	det = psana.Detector('OPAL1') # for AMO
+	det = psana.Detector(dets[i]) # for AMO
 	GDdet = psana.Detector('FEEGasDetEnergy'); #This I hope is the FEE Gas Detector readings
 	EBdet = psana.Detector('EBeam'); #This I hope is the BLD data
 	evr = psana.Detector('NoDetector.0:Evr.0');
