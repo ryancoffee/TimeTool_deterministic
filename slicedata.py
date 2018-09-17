@@ -9,7 +9,7 @@ vwin = (610,640)
 runstr = '119'
 expstr = str('xppc00117')
 
-matfilename="%s/%s_r%s_%i_%i_matrix.dat" % (datadir,expstr,runstr,vwin[0],vwin[1])
+matfilename="%s%s_r%s_%i_%i_matrix.dat" % (datadir,expstr,runstr,vwin[0],vwin[1])
 print(matfilename)
 matdata = np.loadtxt(matfilename,dtype=float).T
 print(matdata.shape)
@@ -19,16 +19,36 @@ filename=datadir + expstr + '_r' + runstr + '_delays.dat'
 delaydata = np.loadtxt(filename,usecols=(0,),dtype=float)
 
 #for ipm2 we want logarithmically distributed slice bins
-nbins = 10
-ipmbins = np.exp(np.linspace(np.log(1e3),np.log(1e5),nbins))
+nbins_ipm = 10
+nbins_del = 10
+ipmbins = np.exp(np.linspace(np.log(1e3),np.log(1e5),nbins_ipm))
 imphist,ipmedges = np.histogram(ipmdata[:,1],bins=ipmbins)
-delayhist,delayedges = np.histogram(delaydata,bins=10)
+delayhist,delayedges = np.histogram(delaydata,bins=nbins_del)
 out = np.column_stack((imphist,ipmedges[:-1]))
 filename = outputdir + expstr + '_r' + runstr + '_ipm.hist'
 np.savetxt(filename,out,fmt='%i')
+out = np.column_stack((delayhist,delayedges[:-1]))
+filename = outputdir + expstr + '_r' + runstr + '_delay.hist'
 
-ipmindices = np.digitize(ipmdata[:,1],ipmedges,right=True)
 delayindices = np.digitize(delaydata,delayedges,right=True)
-print(ipmindices)
-print(delayindices)
+#print(ipmindices)
+#print(delayindices)
+#ipmind = 8
+#delind = 5
+for delind in range(nbins_del):
+	#print('matdata.shape = ', matdata.shape)
+	thisdelayinds = [i for i,d in enumerate(delayindices) if d==delind]
+	delmat = matdata[thisdelayinds,:]
+	#print('delmat.shape = ',delmat.shape)
+	ipmindices = np.digitize(ipmdata[thisdelayinds,1],ipmedges,right=True)
+	for ipmind in range(nbins_ipm):
+		thisipminds = [i for i,ipmv in enumerate(ipmindices) if ipmv==ipmind]
+		outmat = delmat[thisipminds,:]
+		#print('outmat.shape = ',outmat.shape)
+		#indicatorstring = ''.join(['.']*int(math.log(outmat.shape[0]+np.exp(1))))
+		indicatorstring = ''.join(['.']*int(outmat.shape[0]//10))
+		print('%i\t%s' % (outmat.shape[0],indicatorstring))
+		filename = outputdir + expstr + '_r' + runstr + '_ipm' + str(ipmind) + '_del' + str(delind) + '.out'
+		np.savetxt(filename,outmat,fmt='%i')
+
 #one could do the same to np.digitize the delays and then use the delay indices and the ipmindices set filenames for writing results into disk.
