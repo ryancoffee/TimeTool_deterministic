@@ -1,6 +1,16 @@
 #!/reg/g/psdm/sw/conda/inst/miniconda2-prod-rhel7/envs/ana-1.3.58/bin/python
 import numpy as np
 import math
+import subprocess
+
+print('syntax: ./slicedata.py nbins_ipm nbins_delay')
+print(sys.argv)
+if len(sys.argv) < 3:
+	nbins_ipm = 10
+	nbins_del = 10
+else:
+	nbins_ipm = int(sys.argv[1])# 10
+	nbins_del = int(sys.argv[2])# 10
 
 datadir = './data/raw/'
 outputdir = './data/processed/'
@@ -19,8 +29,6 @@ filename=datadir + expstr + '_r' + runstr + '_delays.dat'
 delaydata = np.loadtxt(filename,usecols=(0,),dtype=float)
 
 #for ipm2 we want logarithmically distributed slice bins
-nbins_ipm = 10
-nbins_del = 10
 ipmbins = np.exp(np.linspace(np.log(1e3),np.log(1e5),nbins_ipm))
 imphist,ipmedges = np.histogram(ipmdata[:,1],bins=ipmbins)
 delayhist,delayedges = np.histogram(delaydata,bins=nbins_del)
