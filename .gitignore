@@ -7,6 +7,6 @@ data/raw/*.TIFF
 data/raw/*.PNG
 data/raw/*.png
 data/raw/*.jpg
-data/processed/*.out
+data/processed/*.out*
 data/processed/*.hist
 data/processed/*.diff

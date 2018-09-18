@@ -5,6 +5,20 @@ import subprocess
 import re as regexp
 from scipy import sparse #import coo_matrix
 
+def weinerfilter(cmat):
+	#replot(log((1./x**2)*f(1e8,x,0,20)+exp(10)))
+	w=20.
+	a=1.e8
+	noise=10
+	(sz,ntiles) = cmat.shape
+	f = np.zeros(sz,dtype=complex)
+	f = np.fft.fftfreq(sz,1./sz)
+	f[0] += 0+1.j
+	signal = np.power(np.abs(f),int(-2))*1e8*np.exp(-1.*np.power(f/w,int(2)))
+	filt = signal/(signal+noise)
+	filttile = np.tile(filt,(ntiles,1))
+	return cmat*filttile
+
 wclist = subprocess.check_output('wc -l ./data/processed/*.out', shell=True).split('\n')
 I = []
 D = []
@@ -35,6 +49,11 @@ for line in wclist:
 			mat = mat - refmat 
 			filename= fullname + '.diff'
 			np.savetxt(filename,mat,fmt='%i')
+			matFFT = np.fft.fft(mat,axis=1)
+			if nshots >20:
+				filename= fullname + '.fftabs'
+				np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
+
 
 
 print([dmax,imax])
