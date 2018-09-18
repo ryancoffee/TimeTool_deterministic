@@ -9,3 +9,4 @@ data/raw/*.png
 data/raw/*.jpg
 data/processed/*.out
 data/processed/*.hist
+data/processed/*.diff

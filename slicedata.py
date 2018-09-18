@@ -1,7 +1,7 @@
 #!/reg/g/psdm/sw/conda/inst/miniconda2-prod-rhel7/envs/ana-1.3.58/bin/python
 import numpy as np
 import math
-import subprocess
+import sys
 
 print('syntax: ./slicedata.py nbins_ipm nbins_delay')
 print(sys.argv)

@@ -11,19 +11,36 @@ D = []
 C = []
 imax = 0
 dmax = 0
+expname = ''
+runnum = ''
 for line in wclist:
-	m = regexp.search('^\s*(\d+)\s+.*_r119_ipm(\d+)_del(\d+).out',line)
+	m = regexp.search('^\s*(\d+)\s+(.*data/processed/(.+)_(r119)_ipm(\d+)_del(\d+).out)$',line)
 	if m:
-		imax = max(imax,int(m.group(2)))
-		dmax = max(dmax,int(m.group(3)))
-		if int(m.group(1))>10: # more than 10 spectra in a given delay and ipm 2D-bin
-			I = I + [int(m.group(2))]
-			D = D + [int(m.group(3))]
-			C = C + [int(m.group(1))]
-		#print(m.group(0))
+		nshots = int(m.group(1))
+		fullname = m.group(2)
+		expname = m.group(3)
+		runnum = m.group(4)
+		ipmbin = int(m.group(5))
+		delbin = int(m.group(6))
+		imax = max(imax,ipmbin)
+		dmax = max(dmax,delbin)
+		if nshots>1: # more than 10 spectra in a given delay and ipm 2D-bin
+			I = I + [ipmbin]
+			D = D + [delbin]
+			C = C + [nshots]
+			mat = np.loadtxt(fullname,dtype=float)
+			if (ipmbin<1):
+				ref = np.mean(mat,axis=0,dtype=float)
+			refmat = np.tile(ref,(mat.shape[0],1))
+			mat = mat - refmat 
+			filename= fullname + '.diff'
+			np.savetxt(filename,mat,fmt='%i')
+
 
 print([dmax,imax])
 CMAT = sparse.coo_matrix((C,(D,I)),shape=(dmax+1,imax+1)).toarray()
+filename='./data/processed/%s_%s_count_mat.hist' % (expname,runnum)
+np.savetxt(filename,CMAT,fmt='%i')
 print(CMAT.T)
 
 
