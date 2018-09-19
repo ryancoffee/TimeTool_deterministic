@@ -152,15 +152,34 @@ set psdir
 set fit noerrorvariables
 GNUTERM = "x11"
 matfile(i,d)=sprintf('data/processed/xppc00117_r119_ipm%i_del%i.out.fftback',i,d)
-set term png size 1200,1200
-set output 'data/processed/derivfiltered.png'
+#set term png size 1200,1200
+#set output 'data/processed/derivfiltered.png'
+set multiplot 
+set origin 0,0
+set size .33,1
 set xrange [0:1024]
-set auto y
-set cbrange [-40:40]
-set ytics ('275 nJ' 0,'375 nJ' 10, '475 nJ' 20,'600 nJ' 37,'750 nJ' 60)
+set yrange [0:90]
+set cbrange [0:40]
+set ytics ('275 nJ' 2,'375 nJ' 15, '475 nJ' 35,'600 nJ' 60,'750 nJ' 80)
+set title '1 ps'
+splot matfile(2,12) mat notitle,\
+	matfile(3,12) mat u 1:(10+$2):3 notitle,\
+	matfile(4,12) mat u 1:(25+$2):3 notitle,\
+	matfile(5,12) mat u 1:(50+$2):3 notitle,\
+	matfile(6,12) mat u 1:(70+$2):3 notitle
+set origin .33,0
+set title '0 ps'
 splot matfile(2,10) mat notitle,\
 	matfile(3,10) mat u 1:(10+$2):3 notitle,\
-	matfile(4,10) mat u 1:(20+$2):3 notitle,\
-	matfile(5,10) mat u 1:(37+$2):3 notitle,\
-	matfile(6,10) mat u 1:(60+$2):3 notitle
+	matfile(4,10) mat u 1:(27+$2):3 notitle,\
+	matfile(5,10) mat u 1:(45+$2):3 notitle,\
+	matfile(6,10) mat u 1:(70+$2):3 notitle
+set origin .66,0
+set title '-1 ps'
+splot matfile(2,8) mat notitle,\
+	matfile(3,8) mat u 1:(10+$2):3 notitle,\
+	matfile(4,8) mat u 1:(30+$2):3 notitle,\
+	matfile(5,8) mat u 1:(45+$2):3 notitle,\
+	matfile(6,8) mat u 1:(70+$2):3 notitle
+unset multiplot
 #    EOF

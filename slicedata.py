@@ -6,8 +6,8 @@ import sys
 print('syntax: ./slicedata.py nbins_ipm nbins_delay')
 print(sys.argv)
 if len(sys.argv) < 3:
-	nbins_ipm = 10
-	nbins_del = 10
+	nbins_ipm = 20
+	nbins_del = 20
 else:
 	nbins_ipm = int(sys.argv[1])# 10
 	nbins_del = int(sys.argv[2])# 10
@@ -37,6 +37,7 @@ filename = outputdir + expstr + '_r' + runstr + '_ipm.hist'
 np.savetxt(filename,out,fmt='%i')
 out = np.column_stack((delayhist,delayedges[:-1]))
 filename = outputdir + expstr + '_r' + runstr + '_delay.hist'
+np.savetxt(filename,out,fmt='%f')
 
 delayindices = np.digitize(delaydata,delayedges,right=True)
 #print(ipmindices)

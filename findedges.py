@@ -16,7 +16,7 @@ def weinerfilter(cmat):
 	f.real = np.fft.fftfreq(sz,1./sz)
 	f.imag[0] = 1.
 	signal = np.power(np.abs(f),int(-2))*1e8*np.exp(-1.*np.power(f/w,int(2)))
-	filt = 1.j*f*signal/(signal+noise)
+	filt = 1.j*f*np.power(signal/(signal+noise),int(2))
 	filt.real[0] = 0.
 	filttile = np.tile(filt,(ntiles,1))
 	return cmat*filttile
