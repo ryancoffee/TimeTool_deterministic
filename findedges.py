@@ -57,9 +57,21 @@ for line in wclist:
 			matFFT = weinerfilter(matFFT)
 			filename= fullname + '.filteredabs'
 			np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
-			matback = np.fft.ifft(matFFT,axis=1)
+			matback = np.real(np.fft.ifft(matFFT,axis=1))
 			filename= fullname + '.fftback'
-			np.savetxt(filename,np.real(matback),fmt='%.3f')
+			np.savetxt(filename,matback,fmt='%.3f')
+			inds = np.argmax(matback,axis=1)
+			sparse_mask=sparse.coo_matrix((np.ones(inds.shape[0]),(np.arange(inds.shape[0]),inds)),shape=matback.shape)
+			#print(sparse_mask)
+			#mask[inds[-1,:]-30:inds[-1,:]+30,:] = 0
+			m_matback = matback * sparse_mask.toarray()
+			#m_matback=np.ma.array(matback,mask = sparse_mask.toarray())
+			#outinds[:,1]=m_inds[-1,:]
+			filename= fullname + '.maxinds'
+			np.savetxt(filename,inds,fmt='%i')
+			filename= fullname + '.m_matback'
+			np.savetxt(filename,m_matback,fmt='%i')
+
 
 
 
