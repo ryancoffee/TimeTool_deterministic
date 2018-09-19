@@ -9,13 +9,15 @@ def weinerfilter(cmat):
 	#replot(log((1./x**2)*f(1e8,x,0,20)+exp(10)))
 	w=20.
 	a=1.e8
-	noise=10
-	(sz,ntiles) = cmat.shape
+	(ntiles,sz) = cmat.shape
+	#print('(ntiles,sz) = (%i,%i))'%(ntiles,sz))
+	noise = np.exp(10)
 	f = np.zeros(sz,dtype=complex)
-	f = np.fft.fftfreq(sz,1./sz)
-	f[0] += 0+1.j
+	f.real = np.fft.fftfreq(sz,1./sz)
+	f.imag[0] = 1.
 	signal = np.power(np.abs(f),int(-2))*1e8*np.exp(-1.*np.power(f/w,int(2)))
-	filt = signal/(signal+noise)
+	filt = 1.j*f*signal/(signal+noise)
+	filt.real[0] = 0.
 	filttile = np.tile(filt,(ntiles,1))
 	return cmat*filttile
 
@@ -50,9 +52,14 @@ for line in wclist:
 			filename= fullname + '.diff'
 			np.savetxt(filename,mat,fmt='%i')
 			matFFT = np.fft.fft(mat,axis=1)
-			if nshots >20:
-				filename= fullname + '.fftabs'
-				np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
+			filename= fullname + '.fftabs'
+			np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
+			matFFT = weinerfilter(matFFT)
+			filename= fullname + '.filteredabs'
+			np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
+			matback = np.fft.ifft(matFFT,axis=1)
+			filename= fullname + '.fftback'
+			np.savetxt(filename,np.real(matback),fmt='%.3f')
 
 
 
