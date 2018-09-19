@@ -18,16 +18,10 @@ set clip one
 unset clip two
 set bar 1.000000 front
 set border 31 front linetype -1 linewidth 1.000
-set timefmt z "%d/%m/%y,%H:%M"
 set zdata 
-set timefmt y "%d/%m/%y,%H:%M"
 set ydata 
-set timefmt x "%d/%m/%y,%H:%M"
 set xdata 
-set timefmt cb "%d/%m/%y,%H:%M"
-set timefmt y2 "%d/%m/%y,%H:%M"
 set y2data 
-set timefmt x2 "%d/%m/%y,%H:%M"
 set x2data 
 set boxwidth
 set style fill  empty border
@@ -152,16 +146,34 @@ set psdir
 set fit noerrorvariables
 GNUTERM = "x11"
 matfile(i,d)=sprintf('data/processed/xppc00117_r119_ipm%i_del%i.out.fftback',i,d)
-#set term png size 1200,1200
-#set output 'data/processed/derivfiltered.png'
+set term png size 1200,1000
+set output 'data/processed/derivfiltered.png'
 set multiplot 
 set origin 0,0
 set size .33,1
 set xrange [0:1024]
 set yrange [0:90]
 set cbrange [0:40]
-set ytics ('275 nJ' 2,'375 nJ' 15, '475 nJ' 35,'600 nJ' 60,'750 nJ' 80)
+#ipmdata	absdose[nJ]	absfluence[muJ/cm^2]
+#[[  999   325    64]
+# [ 1274   414    82]
+# [ 1623   528   105]
+# [ 2069   673   133]
+# [ 2636   857   170]
+# [ 3359  1093   217]
+# [ 4281  1393   277]
+# [ 5455  1775   353]
+# [ 6951  2262   450]
+# [ 8858  2882   573]
+#[  73.    93.5  119.   151.5  193.5  247.   315.   401.5  511.5  651.5	830.5 1058.5 1349.  1719.  2190.5 2791.5 3557.5 4533.5]
+#set ytics ('600' 2,'765' 15, '975' 35,'1250' 60,'1600' 80) offset -1,0
+set ytics ('120' 2,'150' 15, '190' 35,'250' 60,'315' 80) offset -1,0
+#set ylabel 'deposited dose [nJ]'
+set ylabel 'deposited dose [uJ/cm^2]'
+set xlabel 'pixel'
 set title '1 ps'
+unset colorbox
+unset border
 splot matfile(2,12) mat notitle,\
 	matfile(3,12) mat u 1:(10+$2):3 notitle,\
 	matfile(4,12) mat u 1:(25+$2):3 notitle,\
