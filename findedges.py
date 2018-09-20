@@ -61,16 +61,15 @@ for line in wclist:
 			filename= fullname + '.fftback'
 			np.savetxt(filename,matback,fmt='%.3f')
 			inds = np.argmax(matback,axis=1)
-			sparse_mask=sparse.coo_matrix((np.ones(inds.shape[0]),(np.arange(inds.shape[0]),inds)),shape=matback.shape)
-			#print(sparse_mask)
+			vals = np.max(matback,axis=1).astype(int)
+			m_matback=sparse.coo_matrix((vals,(np.arange(inds.shape[0]),inds)),shape=matback.shape)
 			#mask[inds[-1,:]-30:inds[-1,:]+30,:] = 0
-			m_matback = matback * sparse_mask.toarray()
 			#m_matback=np.ma.array(matback,mask = sparse_mask.toarray())
 			#outinds[:,1]=m_inds[-1,:]
 			filename= fullname + '.maxinds'
-			np.savetxt(filename,inds,fmt='%i')
+			np.savetxt(filename,np.column_stack((inds,vals)),fmt='%i')
 			filename= fullname + '.m_matback'
-			np.savetxt(filename,m_matback,fmt='%i')
+			np.savetxt(filename,m_matback.toarray(),fmt='%i')
 
 
 
