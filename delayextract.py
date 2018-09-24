@@ -17,7 +17,7 @@ def weighted_rms(vector,weights,avg):
 
 def i2lam(i):
 	#lset = 600nm for amox28216 for lots of the runs.  Chedck the spectrometer wavelength
-        lset=500; 
+        lset=450; 
         nmPi=0.217;
         seterr=1.0051;
         return nmPi*i + seterr*lset - 110.072;
@@ -125,15 +125,16 @@ skipshots = 1;
 skipsteps = 1;
 num = 0.0;
 
-printsamples = (True,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
 ratio = .1; # how to accumulate a rolling average for referencing
-subrefs = (False,False)#,True,True,True,True,True,False,False);
-runstrs = ['120','119']#'74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
-delayscales = [1.e12,1.e12]
-attens = [1.,1.]#[1.0,0.007,0.06,0.04,0.98]# in microjoules
-vwins = [(610,640),(610,640)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
-expstrs = [str('xppc00117'),str('xppc00117')]#str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
-dets = ['opal_1','opal_1']#,'OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
+runstrs = ['136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+vwins = [(575,585),(570,580),(580,590)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
+printsamples = [True]*len(runstrs)#,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
+subrefs = [True]*len(runstrs)#,True,True,True,True,True,False,False);
+delayscales = [1.e12]*len(runstrs)
+attens = [1.]*len(runstrs)#[1.0,0.007,0.06,0.04,0.98]# in microjoules
+expstrs = [str('xppc00117')]*len(runstrs)
+#str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
+dets = ['opal_1']*len(runstrs)#,'OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
 
 nsamples = 1024;
 nrolls = 4;

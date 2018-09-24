@@ -11,7 +11,7 @@ def weighted_rms(vector,weights,avg):
 
 def i2lam(i):
 	#lset = 600nm for amox28216 for lots of the runs.  Chedck the spectrometer wavelength
-        lset=500; 
+        lset=450; 
         nmPi=0.217;
         seterr=1.0051;
         return nmPi*i + seterr*lset - 110.072;
