@@ -161,6 +161,8 @@ step=log(1e5/1e3)/19
 i2ipm(i) = exp(log(1e3) + step*(i))
 set xrange [900:1.1e5]
 set yrange [8:1.1e3]
+set xlabel 'absorbed dose [uJ/cm^2]'
+set ylabel 'signal [arb. units]'
 plot for [i=0:20] file(i,delay) u (i2ipm(i)):2 pt 7 lc -1 notitle,\
 	0.01*x title 'linear'
 #    EOF

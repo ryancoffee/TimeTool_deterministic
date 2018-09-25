@@ -7,16 +7,16 @@ print('syntax: ./slicedata.py nbins_ipm nbins_delay')
 print(sys.argv)
 if len(sys.argv) < 3:
 	nbins_ipm = 20
-	nbins_del = 20
+	nbins_del = 10
 else:
 	nbins_ipm = int(sys.argv[1])# 10
 	nbins_del = int(sys.argv[2])# 10
 
-datadir = './data/raw/'
+datadir = './data/raw/refsub/'
 outputdir = './data/processed/'
 
-vwin = (610,640)
-runstr = '119'
+vwin = (575,585)#(610,640)
+runstr = '136_refsub'
 expstr = str('xppc00117')
 
 matfilename="%s%s_r%s_%i_%i_matrix.dat" % (datadir,expstr,runstr,vwin[0],vwin[1])

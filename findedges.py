@@ -30,7 +30,7 @@ dmax = 0
 expname = ''
 runnum = ''
 for line in wclist:
-	m = regexp.search('^\s*(\d+)\s+(.*data/processed/(.+)_(r119)_ipm(\d+)_del(\d+).out)$',line)
+	m = regexp.search('^\s*(\d+)\s+(.*data/processed/(.+)_(r136_refsub)_ipm(\d+)_del(\d+).out)$',line)
 	if m:
 		nshots = int(m.group(1))
 		fullname = m.group(2)

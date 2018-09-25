@@ -12,3 +12,4 @@ data/processed/*.hist
 data/processed/*.diff
 .nfs00*
 *.swp
+data/raw/refsub/*.dat*
