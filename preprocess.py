@@ -14,30 +14,23 @@ import re as regexp
 nprect = np.vectorize(rect);
 
 dirstr = 'data/raw/'
-skipshots = 1;
-skipsteps = 1;
+skipshots = 100;
+skipsteps = 5;
+samplerate = 10
 num = 0.0;
 
 ratio = .1; # how to accumulate a rolling average for referencing
-runstrs = ['136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
-vwins = [(575,585),(570,580),(580,590)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
+runstrs = ['21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+vwins = [(480,500)]*len(runstrs)#(575,585),(570,580),(580,590)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
 printsamples = [True]*len(runstrs)#,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
 subrefs = [True]*len(runstrs)#,True,True,True,True,True,False,False);
-delayscales = [1.e12]*len(runstrs)
+delayscales = [1.e3]*len(runstrs)#[1.e12]*len(runstrs)
 attens = [1.]*len(runstrs)#[1.0,0.007,0.06,0.04,0.98]# in microjoules
-expstrs = [str('xppc00117')]*len(runstrs)
-#str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
-dets = ['opal_1']*len(runstrs)#,'OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
+#expstrs = [str('xppc00117')]*len(runstrs)
+expstrs = [str('amox28216')]*len(runstrs) #,str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
+dets = ['OPAL1']*len(runstrs)#,'opal_1','OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
 
 nsamples = 1024;
-nrolls = 4;
-nslopes = 4;
-nhist = 256;
-
-weights = np.zeros(nsamples,dtype=float);
-w_weights = np.zeros(nsamples,dtype=float);
-weights = signal_weights(weights);
-w_weights = weiner_weights(w_weights);
 
 for i in range(len(runstrs)):
 	runstr = runstrs[i];
@@ -60,10 +53,10 @@ for i in range(len(runstrs)):
 	evr = psana.Detector('NoDetector.0:Evr.0');
 	cd = psana.Detector('ControlData');
 	#if regexp.search('^.*(xpp).*',runstr):
-	lxt = psana.Detector('lxt');
-	ipm1 = psana.Detector('HX2-SB1-BMMON');
-	ipm2 = psana.Detector('XPP-SB2-BMMON');
-	ipm3 = psana.Detector('XPP-SB3-BMMON');
+	#lxt = psana.Detector('lxt');
+	#ipm1 = psana.Detector('HX2-SB1-BMMON');
+	#ipm2 = psana.Detector('XPP-SB2-BMMON');
+	#ipm3 = psana.Detector('XPP-SB3-BMMON');
 
 	y_init = 0;
 	y_final = 0;
@@ -79,16 +72,18 @@ for i in range(len(runstrs)):
 	n_gd_vals = 6;
 	gd_data = np.zeros(n_gd_vals,dtype=float);
 	G = np.zeros((0,gd_data.shape[0]),dtype=float);
+	""""
 	ipm_data_hdr = '';
 	n_ipm_vals = 3;
 	ipm_data = np.zeros(n_ipm_vals,dtype=float);
 	I = np.zeros((0,ipm_data.shape[0]),dtype=float);
+	"""
 	d_data_hdr = '';
-	d_data = np.zeros(6+gd_data.shape[0]+ipm_data.shape[0],dtype=float);
+	d_data = np.zeros(6+gd_data.shape[0],dtype=float);#+ipm_data.shape[0],dtype=float);
 	D = np.zeros((0,d_data.shape[0]),dtype=float);
-	diags_data = np.zeros(3+2*nrolls+nslopes,dtype=float);
-	diagnostics_hdr = '';
-	diagnostics = np.zeros((0,diags_data.shape[0]),dtype=float);
+	#diags_data = np.zeros(3+2*nrolls+nslopes,dtype=float);
+	#diagnostics_hdr = '';
+	#diagnostics = np.zeros((0,diags_data.shape[0]),dtype=float);
 	sumsignal = np.zeros((1,nsamples),dtype=float);
 
 	'''The third edition: take the average of each step and convert both axes to the right units. '''
@@ -109,13 +104,6 @@ for i in range(len(runstrs)):
 					y_final = pv.value()	
 					print('Step', nstep, 'name/value',pv.name(),pv.value());
 				for nevent,evt in enumerate(step.events()):
-					if (printsample and nevent == 20):
-						print('printing image');
-						img = det.image(evt);
-						filename=dirstr + expstr + '_r' + runstr + '_image200.dat';
-						np.savetxt(filename,img,fmt='%.6e');
-						printsample = False;
-
 					ec = evr.eventCodes(evt)
 					if 162 in ec: 
 						if subref:
@@ -123,31 +111,33 @@ for i in range(len(runstrs)):
 							if (img is None):
 								continue;
 							if nrefshots==0:
-								reference_img = np.sum(img[vwin[0]:vwin[1],:],axis=0)/num;
+								reference_img = img;
 							else:
 								reference_img *= (1.-ratio);
-								reference_img += (ratio)*np.sum(img[vwin[0]:vwin[1],:],axis=0)/num;
+								reference_img += ratio*img;
 							nrefshots += 1;
 						continue;
 					if nevent%skipshots == 0:
+						if (printsample and not nevent%samplerate):
+							print('printing image');
+							img = det.image(evt);
+							if (img is None):
+								continue
+							if (subref and 162 in ec):
+								continue;
+							if subref:
+								img -= reference_img
+							filename=dirstr + expstr + '_r' + runstr + '_step' + str(nstep) + '_image' + str(nevent) + '.dat';
+							np.savetxt(filename,img,fmt='%i');
+							"""
 						lineout = np.zeros(nsamples,dtype=float);
 						lineoutFT = np.zeros(nsamples,dtype=complex);
-    						img = det.image(evt);  #img is not areal image, it is a matrix
 						ebResults = EBdet.get(evt);
 						gdResults = GDdet.get(evt);
 						ipm1Results = ipm1.get(evt);
 						ipm2Results = ipm2.get(evt);
 						ipm3Results = ipm3.get(evt);
- 						if (img is None):
-							continue;
-						if (subref and 162 in ec):
-							continue;
-						try:
-							lineout = (np.sum(img[vwin[0]:vwin[1],:],axis=0)/num) ;
-							if subref:
-								lineout = lineout - reference_img;
-						except:
-							continue
+						lineout = (np.sum(img[vwin[0]:vwin[1],:],axis=0)/num) ;
 						if nsumevents == 0:
 							sumsignal = lineout;
 							nsumevents += 1;
@@ -227,10 +217,11 @@ for i in range(len(runstrs)):
 	np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
 	np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr);
-	filename=dirstr + expstr + '_r' + runstr + '_ipm.dat';
-	np.savetxt(filename,I,fmt='%.6e',header=ipm_data_hdr);
+	#filename=dirstr + expstr + '_r' + runstr + '_ipm.dat';
+	#np.savetxt(filename,I,fmt='%.6e',header=ipm_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_wavelegths.dat';
 	np.savetxt(filename,lam,fmt='%.6e');
 	print('Done saving for run ',runstr);
 	
+						"""
 print('Done.');
