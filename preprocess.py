@@ -14,13 +14,13 @@ import re as regexp
 nprect = np.vectorize(rect);
 
 dirstr = 'data/raw/'
-skipshots = 100;
-skipsteps = 5;
+skipshots = 10;
+skipsteps = 10;
 samplerate = 10
 num = 0.0;
 
 ratio = .1; # how to accumulate a rolling average for referencing
-runstrs = ['21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+runstrs = ['93','94','97']#'21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
 vwins = [(480,500)]*len(runstrs)#(575,585),(570,580),(580,590)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
 printsamples = [True]*len(runstrs)#,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
 subrefs = [True]*len(runstrs)#,True,True,True,True,True,False,False);
