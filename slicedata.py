@@ -12,7 +12,7 @@ else:
 	nbins_ipm = int(sys.argv[1])# 10
 	nbins_del = int(sys.argv[2])# 10
 
-datadir = './data/raw/refsub/'
+datadir = './data/raw/'
 outputdir = './data/processed/'
 
 vwin = (575,585)#(610,640)
@@ -29,7 +29,7 @@ filename=datadir + expstr + '_r' + runstr + '_delays.dat'
 delaydata = np.loadtxt(filename,usecols=(0,),dtype=float)
 
 #for ipm2 we want logarithmically distributed slice bins
-ipmbins = np.exp(np.linspace(np.log(1e3),np.log(1e5),nbins_ipm))
+ipmbins = np.exp(np.linspace(np.log(1e2),np.log(1e5),nbins_ipm))
 imphist,ipmedges = np.histogram(ipmdata[:,1],bins=ipmbins)
 delayhist,delayedges = np.histogram(delaydata,bins=nbins_del)
 out = np.column_stack((imphist,ipmedges[:-1]))

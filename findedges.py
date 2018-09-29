@@ -25,6 +25,7 @@ wclist = subprocess.check_output('wc -l ./data/processed/*.out', shell=True).spl
 I = []
 D = []
 C = []
+G = []
 imax = 0
 dmax = 0
 expname = ''
@@ -70,14 +71,15 @@ for line in wclist:
 			np.savetxt(filename,np.column_stack((inds,vals)),fmt='%i')
 			filename= fullname + '.m_matback'
 			np.savetxt(filename,m_matback.toarray(),fmt='%i')
+			G = G + [100*len([i for i in inds if (i>300 and i<550)])/len(inds)]
 
-
-
-
-print([dmax,imax])
 CMAT = sparse.coo_matrix((C,(D,I)),shape=(dmax+1,imax+1)).toarray()
 filename='./data/processed/%s_%s_count_mat.hist' % (expname,runnum)
 np.savetxt(filename,CMAT,fmt='%i')
 print(CMAT.T)
+GMAT = sparse.coo_matrix((G,(D,I)),shape=(dmax+1,imax+1)).toarray()
+filename='./data/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
+np.savetxt(filename,GMAT,fmt='%i')
+print(GMAT.T)
 
 
