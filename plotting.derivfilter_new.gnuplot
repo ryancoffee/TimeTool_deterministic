@@ -164,15 +164,15 @@ set loadpath
 set fontpath 
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
-file(s,i) = sprintf('data/raw/amox28216_r93_step%i_image%i.dat.fft',s,i)
-fileover(s,i) = sprintf('data/raw/amox28216_r93_step%i_image%i.dat.overfft',s,i)
+file(r,s,i) = sprintf('data/raw/amox28216_r%i_step%i_image%i.dat.fft',r,s,i)
+fileover(r,s,i) = sprintf('data/raw/amox28216_r%i_step%i_image%i.dat.overfft',r,s,i)
 GNUTERM = "qt"
 GPFUN_file = "file(s,i) = sprintf('data/raw/amox28216_r93_step%i_image%i.dat.fft',s,i)"
 x = 0.0
 ## Last datafile plotted: "data/raw/amox28216_r93_step100_image0.dat.fft"
 set style data dots
 set term png enhanced size 800,800
-set output 'plotting.derivfilter_new.png'
+set output 'plotting.derivfilter_new.r76.png'
 set multiplot
 unset xtics
 unset ytics
@@ -183,14 +183,14 @@ set yrange [0:1024]
 set size .5,.5
 set origin 0,.5
 set auto cb
-set cbrange [-15e3:15e3]
-plot file(60,50) mat u 1:2:3 palette notitle
+set cbrange [-20e3:20e3]
+plot file(76,60,50) mat u 1:2:3 palette notitle
 set origin 0,0
-plot file(100,0) mat u 1:2:3 palette notitle
+plot file(76,100,0) mat u 1:2:3 palette notitle
 set origin .5,.5
-set cbrange [-10:10]
-plot file(60,50) mat u 1:2:($3<0?-1.*log(-$3):log($3)) palette notitle
+set cbrange [-15:15]
+plot file(76,60,50) mat u 1:2:($3<0?-1.*log(-$3):log($3)) palette notitle
 set origin .5,0
-plot file(100,0) mat u 1:2:($3<0?-1.*log(-$3):log($3)) palette notitle
+plot file(76,100,0) mat u 1:2:($3<0?-1.*log(-$3):log($3)) palette notitle
 unset multiplot
 #    EOF
