@@ -12,15 +12,33 @@ from utility import *
 import re as regexp
 
 nprect = np.vectorize(rect);
+def weinerfilter(cmat,w=20):
+	#replot(log((1./x**2)*f(1e8,x,0,20)+exp(10)))
+	#w=20.
+	a=1.e8
+	(ntiles,sz) = cmat.shape
+	#print('(ntiles,sz) = (%i,%i))'%(ntiles,sz))
+	noise = np.exp(10)
+	f = np.zeros(sz,dtype=complex)
+	f.real = np.fft.fftfreq(sz,1./sz)
+	f.imag[0] = 1.
+	signal = np.power(np.abs(f),int(-2))*1e8*np.exp(-1.*np.power(f/w,int(2)))
+	filt = 1.j*f*np.power(signal/(signal+noise),int(2))
+	filt.real[0] = 0.
+	filttile = np.tile(filt,(ntiles,1))
+	return cmat*filttile
+
 
 dirstr = 'data/raw/'
-skipshots = 10;
+skipshots = 50;
 skipsteps = 10;
 samplerate = 10
 num = 0.0;
 
+w_over=5
+
 ratio = .1; # how to accumulate a rolling average for referencing
-runstrs = ['93','94','97']#'21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+runstrs = ['93']#,'94','97']#'21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
 vwins = [(480,500)]*len(runstrs)#(575,585),(570,580),(580,590)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
 printsamples = [True]*len(runstrs)#,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
 subrefs = [True]*len(runstrs)#,True,True,True,True,True,False,False);
@@ -129,6 +147,15 @@ for i in range(len(runstrs)):
 								img -= reference_img
 							filename=dirstr + expstr + '_r' + runstr + '_step' + str(nstep) + '_image' + str(nevent) + '.dat';
 							np.savetxt(filename,img,fmt='%i');
+							imgFFT = np.fft.fft(img,axis=1)
+							imgFFT = weinerfilter(imgFFT)
+							overfilterFFT = weinerfilter(imgFFT,w_over)
+							imgback = np.real(np.fft.ifft(imgFFT,axis=1))
+							overimgback = np.abs(np.fft.ifft(overfilterFFT,axis=1))
+							filename=dirstr + expstr + '_r' + runstr + '_step' + str(nstep) + '_image' + str(nevent) + '.dat.fft';
+							np.savetxt(filename,imgback,fmt='%i');
+							filename=dirstr + expstr + '_r' + runstr + '_step' + str(nstep) + '_image' + str(nevent) + '.dat.overfft';
+							np.savetxt(filename,1e-3*(imgback*overimgback),fmt='%i');
 							"""
 						lineout = np.zeros(nsamples,dtype=float);
 						lineoutFT = np.zeros(nsamples,dtype=complex);
@@ -224,4 +251,4 @@ for i in range(len(runstrs)):
 	print('Done saving for run ',runstr);
 	
 						"""
-print('Done.');
+print('Done.\n\tw_over = ',w_over);
