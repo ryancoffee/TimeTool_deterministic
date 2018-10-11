@@ -164,6 +164,7 @@ set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap 
 file(i,d)=sprintf('/data/projects/slac/TimeTool/TimeTool_deterministic/data/processed/xppc00117_r136_refsub_ipm%i_del%i.out',i,d)
 fileback(i,d)=sprintf('/data/projects/slac/TimeTool/TimeTool_deterministic/data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.m_matback',i,d)
 fileinds(i,d)=sprintf('/data/projects/slac/TimeTool/TimeTool_deterministic/data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.maxinds',i,d)
+dconvfileinds(i,d)=sprintf('/data/projects/slac/TimeTool/TimeTool_deterministic/data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.dconv.indsvals',i,d)
 GNUTERM = "qt"
 GPFUN_file = "file(i,d)=sprintf('/data/projects/slac/TimeTool/TimeTool_deterministic/data/processed/xppc00117_r136_refsub_ipm%i_del%i.out',i,d)"
 GPFUN_fileback = "fileback(i,d)=sprintf('/data/projects/slac/TimeTool/TimeTool_deterministic/data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.m_matback',i,d)"
@@ -177,7 +178,7 @@ set style data points
 set pointsize 0.5
 unset colorbox
 set term png size 1200,1000
-set output 'figs/fluencedependence.r136.png'
+set output 'figs/fluencedependence.r136.dconv.png'
 set yrange [10:2e3]
 set xrange [1e1:1.2e4]
 set log y
@@ -185,7 +186,8 @@ set log x
 set key top left
 set xlabel 'absorbed dose [uJ/cm^2]'
 set ylabel 'edge signal [arb. units]'
-plot for [i=0:60] fileinds(i,5) u (i2ipm(i+.7*rand(0))):2 pt 7 lc -1 notitle,\
+#plot for [i=0:60] fileinds(i,5) u (i2ipm(i+.7*rand(0))):2 pt 7 lc -1 notitle,\
+plot for [i=0:60] dconvfileinds(i,5) u (i2ipm(i+.7*rand(0))):2 pt 7 lc -1 notitle,\
 	30+1.7e3*erf(x/4.5e3) lw 2 lc rgb 'red' title "30+erf(x), ipm\\_offset = 250"
 
 #    EOF

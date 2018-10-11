@@ -2,6 +2,13 @@ import numpy as np;
 from numpy.fft import fft as FFT;
 from numpy.fft import ifft as IFFT;
 from numpy.fft import fftfreq as FREQS;
+from scipy.special import erf as erf
+
+def gauss(x):
+    return np.exp(-1.0*np.power(x,int(2)))
+
+def step(x):
+    return 0.5*(1.0+erf(x))
 
 def weighted_rms(vector,weights,avg):
 	if len(avg.shape)==1:

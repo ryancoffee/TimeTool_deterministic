@@ -4,8 +4,9 @@ import math
 import subprocess
 import re as regexp
 from scipy import sparse #import coo_matrix
+from utility import step,gauss
 
-def weinerfilter(cmat):
+def weinerfilter(cmat,dorder):
     #replot(log((1./x**2)*f(1e8,x,0,20)+exp(10)))
     w=20.
     a=1.e8
@@ -16,10 +17,19 @@ def weinerfilter(cmat):
     f.real = np.fft.fftfreq(sz,1./sz)
     f.imag[0] = 1.
     signal = np.power(np.abs(f),int(-2))*1e8*np.exp(-1.*np.power(f/w,int(2)))
-    filt = 1.j*f*np.power(signal/(signal+noise),int(2))
+    filt = np.power(1.j*f,int(dorder))*np.power(signal/(signal+noise),int(dorder+1))
     filt.real[0] = 0.
     filttile = np.tile(filt,(ntiles,1))
     return cmat*filttile
+
+def convvec(sz,rise,fall):
+    x = np.arange(sz,dtype=float)
+    return np.roll(step((x-sz//4)/rise) - step((x-3*sz/4)/fall),sz//4)
+
+def dconvvec(sz,rise):
+    x = np.arange(sz,dtype=float)
+    return np.roll(gauss((x-sz//2)/rise),sz//2)# - gauss((x-3*sz/4)/fall)
+
 
 wclist = subprocess.check_output('wc -l ./data/processed/*.out', shell=True).split('\n')
 I = []
@@ -30,6 +40,7 @@ imax = 0
 dmax = 0
 expname = ''
 runnum = ''
+
 for line in wclist:
     m = regexp.search('^\s*(\d+)\s+(.*data/processed/(.+)_(r136_refsub)_ipm(\d+)_del(\d+).out)$',line)
     if m:
@@ -46,39 +57,37 @@ for line in wclist:
             D = D + [delbin]
   	    C = C + [nshots]
     	    mat = np.loadtxt(fullname,dtype=float)
-                """
-    	    filename= fullname + '.fftabs'
-    	    np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
-                """
             matFFT = np.fft.fft(mat,axis=1)
-            matFFT = weinerfilter(matFFT)
-                        """
-            filename= fullname + '.filteredabs'
-            np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
-                        """
+            (rows,sz)=mat.shape
+            """
+            matFFT = weinerfilter(matFFT,0)
+            convFFT = np.fft.fft(convvec(sz,10,20))
+            convFFTtile = np.tile(convFFT,(rows,1))
+            matFFT = matFFT * convFFTtile
             matback = np.real(np.fft.ifft(matFFT,axis=1))
-            filename= fullname + '.fftback'
+            filename= fullname + '.convback'
             np.savetxt(filename,matback,fmt='%.3f')
-            inds = np.argmax(matback,axis=1)
-            vals = np.max(matback,axis=1).astype(int)
+            """
+            dmatFFT = weinerfilter(matFFT,1)
+            dconvFFT = np.fft.fft(dconvvec(sz,20))
+            dconvFFTtile = np.tile(dconvFFT,(rows,1))
+            dmatFFT = dmatFFT * dconvFFTtile
+            dmatback = np.real(np.fft.ifft(dmatFFT,axis=1))
+            filename= fullname + '.dconvback'
+            np.savetxt(filename,dmatback,fmt='%.3f')
+
+            inds = np.argmax(dmatback,axis=1)
+            vals = np.max(dmatback,axis=1).astype(int)
             buff = 100
-            fallinds = np.argmin(matback[:,buff:-buff],axis=1)+buff
-            fallvals = np.min(matback[:,buff:-buff],axis=1).astype(int)
-            #m_matback=sparse.coo_matrix((vals,(np.arange(inds.shape[0]),inds)),shape=matback.shape)
-            filename= fullname + '.indsvals'
+            fallinds = np.argmin(dmatback[:,buff:-buff],axis=1)+buff
+            fallvals = np.min(dmatback[:,buff:-buff],axis=1).astype(int)
+
+            filename= fullname + '.dconv.indsvals'
             headerstr = 'maxind\tmax\tminind\tmin'
             np.savetxt(filename,np.column_stack((inds,vals,fallinds,fallvals)),fmt='%i',header=headerstr)
-            #filename= fullname + '.m_matback'
-            #np.savetxt(filename,m_matback.toarray(),fmt='%i')
             G = G + [100*len([i for i in inds if (i>300 and i<550)])/len(inds)]
 
-CMAT = sparse.coo_matrix((C,(D,I)),shape=(dmax+1,imax+1)).toarray()
-filename='./data/processed/%s_%s_count_mat.hist' % (expname,runnum)
-np.savetxt(filename,CMAT,fmt='%i')
-print(CMAT.T)
 GMAT = sparse.coo_matrix((G,(D,I)),shape=(dmax+1,imax+1)).toarray()
-filename='./data/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
+filename='./data/processed/%s_%s_goodpct_mat.dconv.hist' % (expname,runnum)
 np.savetxt(filename,GMAT,fmt='%i')
 print(GMAT.T)
-
-

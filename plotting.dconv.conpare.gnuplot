@@ -10,11 +10,12 @@
 #    	gnuplot home:     http://www.gnuplot.info
 #    	faq, bugs, etc:   type "help FAQ"
 #    	immediate help:   type "help"  (plot window: hit 'h')
-# set terminal qt 1 font "Sans,9"
+# set terminal qt 0 font "Sans,9"
 # set output
 unset clip points
 set clip one
 unset clip two
+set errorbars front 1.000000 
 set border 31 front lt black linewidth 1.000 dashtype solid
 set zdata 
 set ydata 
@@ -34,13 +35,16 @@ set format y2 "% h"
 set format z "% h" 
 set format cb "% h" 
 set format r "% h" 
+set ttics format "% h"
+set timefmt "%d/%m/%y,%H:%M"
 set angles radians
 set tics back
 unset grid
 unset raxis
+set theta counterclockwise right
 set style parallel front  lt black linewidth 2.000 dashtype solid
 set key title "" center
-set key right top vertical Right noreverse enhanced autotitle nobox
+set key fixed right top vertical Right noreverse enhanced autotitle nobox
 set key noinvert samplen 4 spacing 1 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
@@ -51,6 +55,7 @@ unset style line
 unset style arrow
 set style histogram clustered gap 2 title textcolor lt -1
 unset object
+set style textbox transparent margins  1.0,  1.0 border  lt -1 linewidth  1.0
 set offsets 0, 0, 0, 0
 set pointsize 1
 set pointintervalbox 1
@@ -58,7 +63,10 @@ set encoding default
 unset polar
 unset parametric
 unset decimalsign
+unset micro
+unset minussign
 set view map scale 1
+set rgbmax 255
 set samples 100, 100
 set isosamples 10, 10
 set surface 
@@ -88,6 +96,8 @@ set mztics default
 set mx2tics default
 set my2tics default
 set mcbtics default
+set mrtics default
+set nomttics
 set xtics border in scale 1,0.5 mirror norotate  autojustify
 set xtics  norangelimit autofreq 
 set ytics border in scale 1,0.5 mirror norotate  autojustify
@@ -100,6 +110,7 @@ set cbtics border in scale 1,0.5 mirror norotate  autojustify
 set cbtics  norangelimit autofreq 
 set rtics axis in scale 1,0.5 nomirror norotate  autojustify
 set rtics  norangelimit autofreq 
+unset ttics
 set title "" 
 set title  font "" norotate
 set timestamp bottom 
@@ -112,74 +123,56 @@ set xlabel ""
 set xlabel  font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  font "" textcolor lt -1 norotate
-set xrange [ * : * ] noreverse nowriteback
-set x2range [ * : * ] noreverse nowriteback
+set xrange [ 39.5514 : 1034.17 ] noreverse nowriteback
+set x2range [ 33.7176 : 881.629 ] noreverse nowriteback
 set ylabel "" 
 set ylabel  font "" textcolor lt -1 rotate
 set y2label "" 
 set y2label  font "" textcolor lt -1 rotate
-set yrange [ * : * ] noreverse nowriteback
-set y2range [ * : * ] noreverse nowriteback
+set yrange [ 760.987 : 873.667 ] noreverse nowriteback
+set y2range [ 825.151 : 912.305 ] noreverse nowriteback
 set zlabel "" 
 set zlabel  font "" textcolor lt -1 norotate
 set zrange [ * : * ] noreverse nowriteback
 set cblabel "" 
 set cblabel  font "" textcolor lt -1 rotate
 set cbrange [ * : * ] noreverse nowriteback
+set rlabel "" 
+set rlabel  font "" textcolor lt -1 norotate
+set rrange [ * : * ] noreverse nowriteback
 unset logscale
+unset jitter
 set zero 1e-08
 set lmargin  -1
 set bmargin  -1
 set rmargin  -1
 set tmargin  -1
 set locale "en_US.UTF-8"
-set pm3d implicit at s
+set pm3d explicit at s
 set pm3d scansautomatic
 set pm3d interpolate 1,1 flush begin noftriangles noborder corners2color mean
+set pm3d nolighting
 set palette positive nops_allcF maxcolors 0 gamma 1.5 color model RGB 
 set palette rgbformulae 7, 5, 15
 set colorbox default
+set colorbox vertical origin screen 0.9, 0.2 size screen 0.05, 0.6 front  noinvert bdefault
+set style boxplot candles range  1.50 outliers pt 7 separation 1 labels auto unsorted
 set loadpath 
 set fontpath 
 set psdir
-file(i,d)=sprintf('./data/processed/xppc00117_r136_refsub_ipm%i_del%i.out',i,d)
-fileback(i,d)=sprintf('./data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.m_matback',i,d)
-fileinds(i,d)=sprintf('./data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.maxinds',i,d)
-dconvfileinds(i,d)=sprintf('./data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.dconv.indsvals',i,d)
+set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "qt"
-## Last datafile plotted: "/data/projects/slac/TimeTool/TimeTool_deterministic/data/processed/xppc00117_r136_refsub_ipm49_del5.out.maxinds"
-ipmvals = '27.     30.5    34.     38.5    43.5    49.     55.     62.     70.    78.5    88.     99.    111.5   125.5   141.    158.5   178.5   200.5       225.5   254.    285.5   321.    361.    405.5   456.    513.    576.5          648.    729.    820.    922.   1036.5  1165.   1309.5  1472.5  1655.5	    1861.   2092.5  2352.5  2644.5  2973.   3342.5  3758.   4225.   4749.5	      5339.5  6003.   6748.5  7587.   8529.5  9589.  10780.  12119.  13624.5	       15317.  17219.5 19358.  21762.5'
-ipm_offset=0
-step = log((21762.5-ipm_offset)/(27-ipm_offset))/59.
-i2ipm(i) = exp(log(27-ipm_offset) + step*(i))
-set style data points
-set pointsize 0.5
-unset colorbox
-set term png size 1200,1000
-set output 'figs/fluencedependence.r136.compare.dconv.png'
-set yrange [10:2e3]
-set xrange [1e1:1e5]
-set log y
-set log x
-set key top left
-set xlabel 'absorbed dose [uJ/cm^2]'
-set ylabel 'edge signal/1000 [arb. units]'
-giacomo(x) = sprintf('data/raw/GiacomoPlot.%s.dat',x)
-set multiplot
-set origin 0,.5
-set size 1,.5
-set auto y
-set key bottom right
-plot for [i=0:60] dconvfileinds(i,5) u (i2ipm(i+.6*rand(0))):($2/1e3) pt 7 lc -1 notitle,\
-	1e-2*x lw 2 lc rgb 'blue' notitle 'linear'
-set origin 0,0
-set yrange [10:120]
-set ylabel 'pct. good shots'
-set pointsize 1
-plot giacomo('spatial') u ($1*1e3):2 w linespoints title 'normal spatial',\
-	giacomo('spectral') u ($1*1e3):2 w linespoints title 'normal spectral',\
-	'data/processed/xppc00117_r136_refsub_goodpct_mat.dconv.hist' mat u (i2ipm($1)):(($2>4&$2<6)?$3:0./0) w points pt 7 lc 1 title "interference spectral"
-	#'data/processed/xppc00117_r136_refsub_goodpct_mat.hist' mat u (i2ipm($1)):(($2>4&$2<6)?$3:0./0) w points pt 7 lc -1 title "interference spectral"
-unset multiplot
-
+x = 0.0
+## Last datafile plotted: "data/processed/xppc00117_r136_refsub_ipm25_del5.out.fftback"
+mat(i,d)=sprintf('data/processed/xppc00117_r136_refsub_ipm%i_del%i.out',i,d)
+dmat(i,d)=sprintf('data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.fftback',i,d)
+dconvmat(i,d)=sprintf('data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.dconvback',i,d)
+ipm=10
+del=5
+set term png size 1000,1000
+outfile(i,d) = sprintf('figs/dconv.compare.xppc00117_r136_refsub_ipm%i_del%i.png',i,d)
+set output outfile(ipm,del)
+set yrange [-100:1200]
+plot mat(ipm,del) mat every :5 u 1:(5*$3+20*$2) w lines lc rgb 'grey' title 'signal',\
+	dconvmat(ipm,del) mat every :5 u 1:(.01*5*$3+20*$2) w lines lw 2 title 'deriv, convolution'
 #    EOF
