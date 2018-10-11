@@ -177,7 +177,7 @@ set style data points
 set pointsize 0.5
 unset colorbox
 set term png size 1200,1000
-set output 'fluencedependence.r136.png'
+set output 'figs/fluencedependence.r136.png'
 set yrange [10:2e3]
 set xrange [1e1:1.2e4]
 set log y

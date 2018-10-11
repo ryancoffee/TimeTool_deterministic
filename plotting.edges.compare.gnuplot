@@ -159,9 +159,9 @@ set style data points
 set pointsize 0.5
 unset colorbox
 set term png size 1200,1000
-set output 'fluencedependence.r136.compare.ipm_asis.png'
-#set output 'fluencedependence.r136.compare.ipm_miscalib_0.1.png'
-#set output 'fluencedependence.r136.compare.ipm_miscalib_10.png'
+set output 'figs/fluencedependence.r136.compare.ipm_asis.png'
+#set output 'figs/fluencedependence.r136.compare.ipm_miscalib_0.1.png'
+#set output 'figs/fluencedependence.r136.compare.ipm_miscalib_10.png'
 set yrange [10:2e3]
 set xrange [1e1:1e5]
 set log y

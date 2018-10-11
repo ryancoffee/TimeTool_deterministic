@@ -46,31 +46,32 @@ for line in wclist:
 			D = D + [delbin]
 			C = C + [nshots]
 			mat = np.loadtxt(fullname,dtype=float)
-			if (ipmbin<1):
-				ref = np.mean(mat,axis=0,dtype=float)
-			refmat = np.tile(ref,(mat.shape[0],1))
-			mat = mat - refmat 
 			filename= fullname + '.diff'
 			np.savetxt(filename,mat,fmt='%i')
 			matFFT = np.fft.fft(mat,axis=1)
+                        """
 			filename= fullname + '.fftabs'
 			np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
+                        """
 			matFFT = weinerfilter(matFFT)
+                        """
 			filename= fullname + '.filteredabs'
 			np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
+                        """
 			matback = np.real(np.fft.ifft(matFFT,axis=1))
 			filename= fullname + '.fftback'
 			np.savetxt(filename,matback,fmt='%.3f')
 			inds = np.argmax(matback,axis=1)
 			vals = np.max(matback,axis=1).astype(int)
-			m_matback=sparse.coo_matrix((vals,(np.arange(inds.shape[0]),inds)),shape=matback.shape)
-			#mask[inds[-1,:]-30:inds[-1,:]+30,:] = 0
-			#m_matback=np.ma.array(matback,mask = sparse_mask.toarray())
-			#outinds[:,1]=m_inds[-1,:]
-			filename= fullname + '.maxinds'
-			np.savetxt(filename,np.column_stack((inds,vals)),fmt='%i')
-			filename= fullname + '.m_matback'
-			np.savetxt(filename,m_matback.toarray(),fmt='%i')
+                        buff = 100
+                        fallinds = np.argmin(matback[:,buff:-buff],axis=1)+buff
+                        fallvals = np.min(matback[:,buff:-buff],axis=1).astype(int)
+			#m_matback=sparse.coo_matrix((vals,(np.arange(inds.shape[0]),inds)),shape=matback.shape)
+			filename= fullname + '.indsvals'
+                        headerstr = 'maxind\tmax\tminind\tmin'
+			np.savetxt(filename,np.column_stack((inds,vals,fallinds,fallvals)),fmt='%i',header=headerstr)
+			#filename= fullname + '.m_matback'
+			#np.savetxt(filename,m_matback.toarray(),fmt='%i')
 			G = G + [100*len([i for i in inds if (i>300 and i<550)])/len(inds)]
 
 CMAT = sparse.coo_matrix((C,(D,I)),shape=(dmax+1,imax+1)).toarray()

@@ -147,7 +147,7 @@ set fit noerrorvariables
 GNUTERM = "x11"
 matfile(i,d)=sprintf('data/processed/xppc00117_r119_ipm%i_del%i.out.fftback',i,d)
 set term png size 1200,1000
-set output 'data/processed/derivfiltered.png'
+set output 'figs/derivfiltered.png'
 set multiplot 
 set origin 0,0
 set size .33,1

@@ -168,7 +168,7 @@ GPFUN_file = "file(r,s,i)=sprintf('data/raw/amox28216_r%i_step%i_image%i.dat',r,
 x = 0.0
 ## Last datafile plotted: "data/raw/amox28216_r15_step50_image100.dat"
 set term png size 800,800
-set output 'plotting.fibers.r15.png'
+set output 'figs/plotting.fibers.r15.png'
 unset colorbox
 set multiplot
 set size .55,.55
@@ -182,7 +182,7 @@ set origin .5,0
 splot file(15,60,100) mat u 1:2:($3<0?-log(-$3):log($3))notitle
 unset multiplot
 set term png size 800,800
-set output 'plotting.fibers.r93.png'
+set output 'figs/plotting.fibers.r93.png'
 set cbrange [0:7]
 set multiplot
 set size .55,.55
@@ -196,7 +196,7 @@ set origin .5,0
 splot file(93,90,30) mat u 1:2:($3<0?0:log($3))notitle
 unset multiplot
 set term png size 800,800
-set output 'plotting.fibers.r93.single.png'
+set output 'figs/plotting.fibers.r93.single.png'
 set size 1,1
 set origin 0,0
 splot file(93,90,10) mat u 1:2:($3<0?0:log($3))notitle
