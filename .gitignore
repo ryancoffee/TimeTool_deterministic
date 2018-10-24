@@ -7,6 +7,7 @@ data/raw/*.TIFF
 data/raw/*.PNG
 data/raw/*.png
 data/raw/*.jpg
+data/processed/*.innerprod
 data/processed/*.out*
 data/processed/*.hist
 data/processed/*.diff
