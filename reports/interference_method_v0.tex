@@ -1,0 +1,123 @@
+\documentclass{article}
+%\documentclass[pra,aps]{revtex4}
+\usepackage{natbib} 
+\usepackage{graphics} % use the graphics package for simple commands
+\usepackage{graphicx} % or use the graphicx package for more complicated commands
+\usepackage{epsfig} % or use epsfig package if you prefer to use the old commands
+\usepackage{amssymb} % The amssymb package provides various useful mathematical symbols
+\usepackage{amsmath}
+
+\newcommand{\ket}[1]{\ensuremath{\left| #1 \right\rangle}}
+\newcommand{\bra}[1]{\ensuremath{\left\langle #1 \right|}}
+\newcommand{\braket}[2]{\ensuremath{\left\langle #1 \right|\left. #2 \right\rangle}}
+\newcommand{\expect}[1]{\ensuremath{\left\langle #1 \right\rangle}}
+\newcommand{\eV}{\mbox{eV}}
+\newcommand{\icm}{\ensuremath{\mbox{cm}^{-1}}}
+\newcommand{\cm}{\mbox{cm}}
+\newcommand{\EE}[1]{\ensuremath{\times 10^{ #1 }}}
+\newcommand{\ee}[1]{\ensuremath{\times 10^{ #1 }}}
+\newcommand{\norm}[1]{\ensuremath{\left| #1 \right|}}
+\newcommand{\abs}[1]{\ensuremath{\left| #1 \right|}}
+\newcommand{\HH}{\mathcal{H}}
+\newcommand{\laplace}[1]{\ensuremath{\mathcal{L}\left\{ #1 \right\}}}
+\newcommand{\fourier}[1]{\ensuremath{\mathcal{F}\left\{ #1 \right\}}}
+\newcommand{\invlaplace}[1]{\ensuremath{\mathcal{L}^{-1}\left\{ #1 \right\}}}
+\newcommand{\invfourier}[1]{\ensuremath{\mathcal{F}^{-1}\left\{ #1 \right\}}}
+\newcommand{\myexp}[1]{\ensuremath{ \exp\left( #1 \right) }}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\myerf}[1]{\ensuremath{{\mathrm{erf}\left( #1 \right)}}}
+\newcommand{\heaviside}[1]{\ensuremath{ \mathrm{\Theta}\left( #1 \right)}}
+\newcommand{\etal}{,~\textit{et~al.,~}}
+
+\graphicspath{{./figs/}}
+\newlength{\figwidth}
+\setlength{\figwidth}{.9\linewidth}
+
+\begin{document}
+
+\author{Ryan Coffee}
+\author{Nick Hartmann}
+\author{Andreas Galler}
+\author{Markus Ilchen
+, Kareem Hegazy, 
+, Jia Yang
+, Xijie Wang
+, Renkai Li
+, Xiaozhe Shen
+, Timur Y Osipov
+, Catalin Miron
+, Maria Novella-Piancastelli
+, Mark Simon
+, Christoph Bostedt
+, Kenneth R. Fergusen
+, Max Bucher
+, Jan Gr\"{u}nert
+, Jia Liu
+, Jens Viefhaus
+, Gregor Hartmann
+, Jens Buck
+, more\ldots}
+%\affiliation{SLAC National Accelerator laboratory, Menlo Park, California, USA}
+%\affiliation{The PULSE Institute, Stanford, California, USA}
+%\affiliation{European XFEL, Hamburg, Germany}
+
+%\title{Intereference method for spectral encoding at x-ray Free Electron Lasers}
+\title{Time-shear interference for x-ray/optical cross-correlation timing at high repetition rate free-electron lasers.}
+
+\begin{abstract}
+In this report, we present results that demonstrate orders of magnitude improvement in signal sensitivity for x-ray optical cross correlation as used for relative delay identification.
+For both so called ``warm'' accelerator based x-ray Free Electron Lasers (xFELs) and the new superconducting quasi-continous high repetition rate xFELs, there still is a need for shot-by-shot arrival time measurement and sorting.
+
+\end{abstract}
+
+\maketitle
+
+
+\section{Introduction}
+\subsection{Jitter}
+State the existing problem
+\subsubsection{History}
+State the old way of fixing it
+\subsubsection{Stochastic sampling paradigm}
+\subsubsection{Expectations at EuXFEL and LCLS-II}
+\subsection{Diamond}
+\subsubsection{Thermal Load}
+	But with the higher repetition rate xFELs, the average power load on x-ray optics is so high that we need extremely highly conducing cross correlation medium.
+\subsubsection{Absorption}
+	sensitivity
+\subsubsection{Historical trials}
+
+\subsection{Time-shear interference}
+State the new interference
+
+\section{Method}
+\begin{figure}
+\centerline{\includegraphics[\figwidth]{}}
+\caption{\label{fig::cartoon} Schmatic of the experimental design.}
+\end{figure}
+\subsection{Birefringent delay}
+Diamond
+Crossed polarization analysis
+Deterministic algorithm
+\section{Results}
+\subsection{Phase not Absorption}
+Signals in water and diamond
+\subsection{X-ray Photon energy dependence}
+\subsection{Optical wavelength dependence}
+\section{Conclusion}
+
+\section{Discussion}
+\subsection{Signal versus ev/atom (XPP/AMO)}
+\subsection{Temporal Resolution (XPP)}
+\subsection{Using the etalon (AMO)}
+
+\section{Conclusion}
+
+
+\bibliographystyle{plain}
+\bibliography{$BIBFILES/Coffee,$BIBFILES/lcls_refs}
+\end{document}
+
+
+\end{document}
+
