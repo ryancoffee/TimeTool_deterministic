@@ -24,8 +24,8 @@ def sumsamplerows(mat,ncombine):
     return result
 
 def main():
-    datadir = './data/raw/'
-    calibdir = './data/extern/'
+    datadir = './data_fs/raw/'
+    calibdir = './data_fs/extern/'
 
     calibfile=calibdir + 'tfrecord_chirp-2400_823_interference.calibration'
     print(calibfile)
@@ -40,7 +40,7 @@ def main():
     (nrows,npixels) = imgmat.shape
     print('nrows = ', nrows)
     #print(np.matmul(calibmat,imgmat[0,:].T))
-    procdir = './data/processed/'
+    procdir = './data_fs/processed/'
 
     ncombine=8
     out = np.zeros((2*imgmat.shape[0]//ncombine+2),dtype=int)
