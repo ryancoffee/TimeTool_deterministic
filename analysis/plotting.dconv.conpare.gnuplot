@@ -137,11 +137,9 @@ set locale "en_US.UTF-8"
 set pm3d explicit at s
 set pm3d scansautomatic
 set pm3d interpolate 1,1 flush begin noftriangles noborder corners2color mean
-set pm3d nolighting
 set palette positive nops_allcF maxcolors 0 gamma 1.5 color model RGB 
 set palette rgbformulae 7, 5, 15
 set colorbox default
-set colorbox vertical origin screen 0.9, 0.2 size screen 0.05, 0.6 front  noinvert bdefault
 set style boxplot candles range  1.50 outliers pt 7 separation 1 labels auto unsorted
 set loadpath 
 set fontpath 
@@ -150,13 +148,13 @@ set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap 
 GNUTERM = "qt"
 x = 0.0
 ## Last datafile plotted: "data/processed/xppc00117_r136_refsub_ipm25_del5.out.fftback"
-mat(i,d)=sprintf('data/processed/xppc00117_r136_refsub_ipm%i_del%i.out',i,d)
-dmat(i,d)=sprintf('data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.fftback',i,d)
-dconvmat(i,d)=sprintf('data/processed/xppc00117_r136_refsub_ipm%i_del%i.out.dconvback',i,d)
+mat(i,d)=sprintf('../data_fs/processed/xppc00117_r136_refsub_ipm%i_del%i.out',i,d)
+dmat(i,d)=sprintf('../data_fs//processed/xppc00117_r136_refsub_ipm%i_del%i.out.fftback',i,d)
+dconvmat(i,d)=sprintf('../data_fs/processed/xppc00117_r136_refsub_ipm%i_del%i.out.dconvback',i,d)
 ipm=10
 del=5
 set term png size 1000,1000
-outfile(i,d) = sprintf('figs/dconv.compare.xppc00117_r136_refsub_ipm%i_del%i.png',i,d)
+outfile(i,d) = sprintf('../figs/dconv.compare.xppc00117_r136_refsub_ipm%i_del%i.png',i,d)
 set output outfile(ipm,del)
 set yrange [-100:1200]
 plot mat(ipm,del) mat every :5 u 1:(5*$3+20*$2) w lines lc rgb 'grey' title 'signal',\
