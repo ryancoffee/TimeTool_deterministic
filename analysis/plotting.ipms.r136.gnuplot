@@ -181,15 +181,17 @@ set grid
 set log x
 set style data dots
 set yrange [.1:1e4]
-aa=a=4e-3
-bb=b=10.
+aaa=aa=a=4e-3
+bbb=bb=b=10.
 f(x) = a*exp(x/b)
 g(x) = aa*exp(x/bb)
+h(x) = aaa*exp(x/bbb)
 set label 1 "20 {/Symbol m}m thick YAG\n9.5 keV photon energy" center at .1,2e3
 set label 2 "rising edge" center at .03,2e2 textcolor rgb 'blue'
 set label 3 "falling edge/10" center at .03,.7 textcolor rgb 'green'
 fit f(x) './data_fs/reference/yag.attlen.absdose' u 0:($4*1e-9) via a,b
 fit g(x) './data_fs/reference/yag.attlen.absdose' u 0:($3*1e-6) via aa,bb
+fit h(x) './data_fs/reference/yag.attlen.absdose' u 0:($1*1e-3) via aaa,bbb
 
 plot for [i=0:80] file('r136_refsub',i,delay) u (f(i+rand(0))):2 lc rgb 'blue' notitle,\
 	for [i=0:80] file('r136_refsub',i,delay) u (f(i+rand(0))):(-.10*$4) lc rgb 'green' notitle
@@ -202,6 +204,15 @@ set label 3 center at .07,.7 textcolor rgb 'green'
 set xlabel 'Absorbed dose [mJ/cm^2]'
 plot for [i=0:80] file('r136_refsub',i,delay) u (g(i+rand(0))):2 lc rgb 'blue' notitle,\
 	for [i=0:80] file('r136_refsub',i,delay) u (g(i+rand(0))):(-.10*$4) lc rgb 'green' notitle
+
+set term png size 600,600 
+set output sprintf('./figs/plotting.ipms_%s_del%i.r136.incident.png','r136_refsub',delay)
+set label 1 center at 3,2e3
+set label 2 center at .3,2e2 textcolor rgb 'blue'
+set label 3 center at .3,.7 textcolor rgb 'green'
+set xlabel 'Incident energy [{/Symbol m}J]'
+plot for [i=0:80] file('r136_refsub',i,delay) u (h(i+rand(0))):2 lc rgb 'blue' notitle,\
+	for [i=0:80] file('r136_refsub',i,delay) u (h(i+rand(0))):(-.10*$4) lc rgb 'green' notitle
 #Final set of parameters            Asymptotic Standard Error
 #=======================            ==========================
 #a               = 0.00438095       +/- 1.118e-07    (0.002551%)
