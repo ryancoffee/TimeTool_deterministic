@@ -21,7 +21,7 @@ def weinerfilter(cmat):
     filttile = np.tile(filt,(ntiles,1))
     return cmat*filttile
 
-wclist = subprocess.check_output('wc -l ./data/processed/*.out', shell=True).split('\n')
+wclist = subprocess.check_output('wc -l ./data_fs/processed/*.out', shell=True).split('\n')
 I = []
 D = []
 C = []
@@ -31,7 +31,7 @@ dmax = 0
 expname = ''
 runnum = ''
 for line in wclist:
-    m = regexp.search('^\s*(\d+)\s+(.*data/processed/(.+)_(r136_refsub)_ipm(\d+)_del(\d+).out)$',line)
+    m = regexp.search('^\s*(\d+)\s+(.*data_fs/processed/(.+)_(r136_refsub)_ipm(\d+)_del(\d+).out)$',line)
     if m:
     	nshots = int(m.group(1))
     	fullname = m.group(2)
@@ -44,18 +44,18 @@ for line in wclist:
     	if nshots>1: # more than 10 spectra in a given delay and ipm 2D-bin
             I = I + [ipmbin]
             D = D + [delbin]
-  	    C = C + [nshots]
-    	    mat = np.loadtxt(fullname,dtype=float)
-                """
+            C = C + [nshots]
+            mat = np.loadtxt(fullname,dtype=float)
+            """
     	    filename= fullname + '.fftabs'
     	    np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
                 """
             matFFT = np.fft.fft(mat,axis=1)
             matFFT = weinerfilter(matFFT)
-                        """
+            """
             filename= fullname + '.filteredabs'
             np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
-                        """
+            """
             matback = np.real(np.fft.ifft(matFFT,axis=1))
             filename= fullname + '.fftback'
             np.savetxt(filename,matback,fmt='%.3f')
@@ -73,11 +73,11 @@ for line in wclist:
             G = G + [100*len([i for i in inds if (i>300 and i<550)])/len(inds)]
 
 CMAT = sparse.coo_matrix((C,(D,I)),shape=(dmax+1,imax+1)).toarray()
-filename='./data/processed/%s_%s_count_mat.hist' % (expname,runnum)
+filename='./data_fs/processed/%s_%s_count_mat.hist' % (expname,runnum)
 np.savetxt(filename,CMAT,fmt='%i')
 print(CMAT.T)
 GMAT = sparse.coo_matrix((G,(D,I)),shape=(dmax+1,imax+1)).toarray()
-filename='./data/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
+filename='./data_fs/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
 np.savetxt(filename,GMAT,fmt='%i')
 print(GMAT.T)
 

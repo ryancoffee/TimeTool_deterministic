@@ -4,28 +4,12 @@ import numpy as np
 import re as regexp
 import subprocess
 from scipy import sparse
+from fileutils import *
 
-def imgfile(dirstr,e,r,s,i):
-    #filehead = 'amox28216_r93_step0_image0.dat'
-    return dirstr + '%s_r%i_step%i_image%i.dat' % (e,r,s,i)
-
-def resfile(dirstr,e,r,tailstr):
-    return dirstr + '%s_r%i.%s' % (e,r,tailstr)
-
-def outfile(dirstr,e,r,s,i,tailstr):
-    return dirstr + '%s_r%i_step%i_image%i.%s' % (e,r,s,i,tailstr)
-
-def sumsamplerows(mat,ncombine):
-    (nrows,ncols) = mat.shape
-    #print("(nrows,ncols) = (%i,%i)" % (nrows,ncols))
-    result = np.zeros((nrows//ncombine,ncols),dtype=mat.dtype)
-    for r in range(nrows//ncombine):
-        result[r,:] = np.sum(mat[ncombine*r:ncombine*(r+1),:],axis=0)
-    return result
 
 def main():
-    datadir = './data/raw/'
-    calibdir = './data/extern/'
+    datadir = './data_fs/raw/'
+    calibdir = './data_fs/extern/'
 
     calibfile=calibdir + 'tfrecord_chirp-2400_823_interference.calibration'
     print(calibfile)
@@ -40,7 +24,7 @@ def main():
     (nrows,npixels) = imgmat.shape
     print('nrows = ', nrows)
     #print(np.matmul(calibmat,imgmat[0,:].T))
-    procdir = './data/processed/'
+    procdir = './data_fs/processed/'
 
     ncombine=8
     out = np.zeros((2*imgmat.shape[0]//ncombine+2),dtype=int)

@@ -12,8 +12,8 @@ else:
 	nbins_ipm = int(sys.argv[1])# 10
 	nbins_del = int(sys.argv[2])# 10
 
-datadir = './data/raw/'
-outputdir = './data/processed/'
+datadir = './data_fs/raw/'
+outputdir = './data_fs/processed/'
 
 vwin = (575,585)#(610,640)
 runstr = '136_refsub'

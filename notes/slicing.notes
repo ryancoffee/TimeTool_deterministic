@@ -1,0 +1,5 @@
+>>> v = [0,2,1,5,6,2,1,8,9,0,2,6,1,4,2,1,4]
+>>> indices = [i for i,x in enumerate(v) if x<2]
+
+y = [v[i] for i,x in enumerate(v) if x>2 ]
+
