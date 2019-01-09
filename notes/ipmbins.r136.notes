@@ -1,4 +1,7 @@
-ipmdata	absdose[nJ]	absfluence[muJ/cm^2]
+#data_container/processed/xppc00117_r136_refsub_ipm.hist
+#IPM bins are listed in the ipm.hist file  rownumber is ipm bin and the 1st column is the number of total shots (all delays) that fell into that bin, and the second colmun is the counts on the IPM, e.g. 1000 = 1muJ for the 0th bin.  Delaybin 5 just means centered.  
+#I'm finding the rising edge left and the falling edge right and show the found edges as points.  This is the so-called "slow-expensive" ground truth generation, the fast-cheap inference is after training on this ground truth.
+#ipmdata	absdose[nJ]	absfluence[muJ/cm^2]
 [[  999   325   258]
  [ 1081   351   279]
  [ 1168   380   302]

@@ -166,14 +166,39 @@ set loadpath
 set fontpath 
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
-file(r,i,d)=sprintf('../data_fs/processed/xppc00117_r%i_ipm%i_del%i.out.maxinds',r,i,d)
+file(r,i,d)=sprintf('./data_fs/processed/xppc00117_%s_ipm%i_del%i.out.indsvals',r,i,d)
 GNUTERM = "qt"
 x = 0.0
 step=log(1e2/1e0)/19
 i2ipm(i) = exp(log(1e0) + step*(i))
-delay = 10
+delay = 3 
 ## Last datafile plotted: "./xppc00117_r119_ipm20_del10.out.maxinds"
-set xlabel 'dose [mJ/cm^2]'
+set xlabel 'Deposited energy density [J/cm^3]'
 set ylabel 'signal [arb. units]'
-plot for [i=0:20] file(136,i,delay) u (i2ipm(i)):2 pt 7 lc -1 notitle
+set term png size 600,600 
+set output './figs/plotting.ipms.r136.png'
+set grid
+set log x
+set style data dots
+a=4e-3
+b=10.
+f(x) = a*exp(x/b)
+set label 1 "100 {/Symbol m}m thick YAG\n9.5 keV photon energy" center at .1,2e3
+set label 2 "rising edge" center at .03,2e2 textcolor rgb 'blue'
+set label 3 "falling edge/10" center at .03,.7 textcolor rgb 'green'
+fit f(x) './data_fs/reference/yag.attlen.absdose' u 0:($4*1e-9) via a,b
+
+plot for [i=0:80] file('r136_refsub',i,delay) u (f(i+rand(0))):2 lc rgb 'blue' notitle,\
+	for [i=0:80] file('r136_refsub',i,delay) u (f(i+rand(0))):(-.10*$4) lc rgb 'green' notitle
+
+#Final set of parameters            Asymptotic Standard Error
+#=======================            ==========================
+#a               = 0.00438095       +/- 1.118e-07    (0.002551%)
+#b               = 11.4362          +/- 4.59e-05     (0.0004014%)
+#
+#correlation matrix of the fit parameters:
+#                a      b      
+#a               1.000 
+#b               0.997  1.000 
+#
 #    EOF

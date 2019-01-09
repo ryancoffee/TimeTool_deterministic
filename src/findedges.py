@@ -1,4 +1,4 @@
-#!/reg/g/psdm/sw/conda/inst/miniconda2-prod-rhel7/envs/ana-1.3.58/bin/python
+#!/usr/bin/python3
 import numpy as np
 import math
 import subprocess
@@ -21,7 +21,7 @@ def weinerfilter(cmat):
     filttile = np.tile(filt,(ntiles,1))
     return cmat*filttile
 
-wclist = subprocess.check_output('wc -l ./data_fs/processed/*.out', shell=True).split('\n')
+wclist = subprocess.check_output('wc -l ./data_fs/processed/*r136_refsub*.out', shell=True).decode("utf-8").split('\n')
 I = []
 D = []
 C = []
@@ -49,7 +49,7 @@ for line in wclist:
             """
     	    filename= fullname + '.fftabs'
     	    np.savetxt(filename,np.abs(matFFT),fmt='%.3f')
-                """
+            """
             matFFT = np.fft.fft(mat,axis=1)
             matFFT = weinerfilter(matFFT)
             """
