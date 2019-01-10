@@ -178,54 +178,39 @@ i2ipm(i) = exp(log(1e0) + step*(i))
 delay = 3 
 ## Last datafile plotted: "./xppc00117_r119_ipm20_del10.out.maxinds"
 set xlabel 'Deposited energy density [J/cm^3]'
-set ylabel 'signal [arb. units]'
+set ylabel '% of found signal [%]'
 set term png size 600,600 
-set output sprintf('./figs/plotting.ipms_%s_del%i.r136.energydensity.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.r136.energydensity.png','r136_refsub',delay)
 set grid
 set log x
+unset log y
 set style data dots
-set yrange [.1:1e4]
+set yrange [0:120]
 aaa=aa=a=4e-3
 bbb=bb=b=10.
 f(x) = a*exp(x/b)
 g(x) = aa*exp(x/bb)
 h(x) = aaa*exp(x/bbb)
-set label 1 "20 {/Symbol m}m thick YAG\n9.5 keV photon energy" center at .1,2e3
-set label 2 "rising edge" center at .03,2e2 textcolor rgb 'blue'
-set label 3 "falling edge/10" center at .03,.7 textcolor rgb 'green'
+set title "20 {/Symbol m}m thick YAG\n9.5 keV photon energy" center
 fit f(x) './data_fs/reference/yag.attlen.absdose' u 0:($4*1e-9) via a,b
 fit g(x) './data_fs/reference/yag.attlen.absdose' u 0:($3*1e-6) via aa,bb
 fit h(x) './data_fs/reference/yag.attlen.absdose' u 0:($1*1e-3) via aaa,bbb
 
-plot for [i=0:80] file('r136_refsub',i,delay) u (f(i+rand(0))):2 lc rgb 'blue' notitle,\
-	for [i=0:80] file('r136_refsub',i,delay) u (f(i+rand(0))):(-.10*$4) lc rgb 'green' notitle
+plot 	pctgoodfile('r136_refsub') mat u (f($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
+	ip_pctgoodfile('r136_refsub') mat u (f($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation comparison'
 
 set term png size 600,600 
-set output sprintf('./figs/plotting.ipms_%s_del%i.r136.absdose.png','r136_refsub',delay)
-set label 1 center at .3,2e3
-set label 2 center at .07,2e2 textcolor rgb 'blue'
-set label 3 center at .07,.7 textcolor rgb 'green'
+set output sprintf('./figs/plotting.goodpct_%s_del%i.r136.absdose.png','r136_refsub',delay)
 set xlabel 'Absorbed dose [mJ/cm^2]'
-plot for [i=0:80] file('r136_refsub',i,delay) u (g(i+rand(0))):2 lc rgb 'blue' notitle,\
-	for [i=0:80] file('r136_refsub',i,delay) u (g(i+rand(0))):(-.10*$4) lc rgb 'green' notitle
+plot 	pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
+	ip_pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
 
 set term png size 600,600 
-set output sprintf('./figs/plotting.ipms_%s_del%i.r136.incident.png','r136_refsub',delay)
-set label 1 center at 3,2e3
-set label 2 center at .3,2e2 textcolor rgb 'blue'
-set label 3 center at .3,.7 textcolor rgb 'green'
+set output sprintf('./figs/plotting.goodpct_%s_del%i.r136.incident.png','r136_refsub',delay)
 set xlabel 'Incident energy [{/Symbol m}J]'
-set auto y
-plot for [i=0:80] file('r136_refsub',i,delay) u (h(i+rand(0))):2 lc rgb 'blue' notitle,\
-	for [i=0:80] file('r136_refsub',i,delay) u (h(i+rand(0))):(-.10*$4) lc rgb 'green' notitle,\
-	for [i=0:80] ip_file('r136_refsub',i,delay) u (h(i+rand(0))):($2) lc rgb 'red' notitle,\
-	for [i=0:80] noetalon_ip_file('r136_refsub',i,delay) u (h(i+rand(0))):($2) lc rgb 'black' notitle,\
-	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title '\% good shots',\
-	ip_pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title '\% good shots, innerprod'
+plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
+	ip_pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
 
-set term png size 600,600 
-set output sprintf('./figs/plotting.ipms_%s_del%i.r136.incident.png','r136_refsub',delay)
-plot ip_pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title '% good shots, innerprod'
 #Final set of parameters            Asymptotic Standard Error
 #=======================            ==========================
 #a               = 0.00438095       +/- 1.118e-07    (0.002551%)
