@@ -178,9 +178,9 @@ i2ipm(i) = exp(log(1e0) + step*(i))
 delay = 3 
 ## Last datafile plotted: "./xppc00117_r119_ipm20_del10.out.maxinds"
 set xlabel 'Deposited energy density [J/cm^3]'
-set ylabel '% of found signal [%]'
+set ylabel 'signal visability [%]'
 set term png size 600,600 
-set output sprintf('./figs/plotting.goodpct_%s_del%i.r136.energydensity.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.energydensity.png','r136_refsub',delay)
 set grid
 set log x
 unset log y
@@ -200,17 +200,26 @@ plot 	pctgoodfile('r136_refsub') mat u (f($1)):($2==3?$3:0./0) w histeps lw 2 ti
 	ip_pctgoodfile('r136_refsub') mat u (f($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation comparison'
 
 set term png size 600,600 
-set output sprintf('./figs/plotting.goodpct_%s_del%i.r136.absdose.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.absdose.png','r136_refsub',delay)
 set xlabel 'Absorbed dose [mJ/cm^2]'
 plot 	pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
 	ip_pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
 
 set term png size 600,600 
-set output sprintf('./figs/plotting.goodpct_%s_del%i.r136.incident.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.incident.png','r136_refsub',delay)
 set xlabel 'Incident energy [{/Symbol m}J]'
 plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
 	ip_pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
 
+set term png size 600,600 
+set output sprintf('./figs/plotting.goodpct_%s_del%i.absdose.forUED.png','r136_refsub',delay)
+set xlabel 'Absorbed dose [mJ/cm^2]'
+set label 1 "100 fC at 4 MeV\n10% absorption\n1 mm YAG\n100 {/Symbol m}m diam." center at .5,100
+set arrow 1 from .5,70 to .5,40 filled
+set label 2 "50 {/Symbol m}m diam." center at 2,10
+set arrow 2 from 2,20 to 2,40 filled
+plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
+	ip_pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
 #Final set of parameters            Asymptotic Standard Error
 #=======================            ==========================
 #a               = 0.00438095       +/- 1.118e-07    (0.002551%)
