@@ -86,9 +86,6 @@ def execute_matderivative(mat,derivmat):
     
 
 def main():
-    calibfilename = '/home/coffee/projects/2dtimetool_simulation_data/extern/ascii_chirp-2000_1650_nfibers61_interference.calibration'
-    noetaloncalibfilename = '/home/coffee/projects/2dtimetool_simulation_data/extern/ascii_chirp-2000_1650_nfibers61_noetalon_interference.calibration'
-
     matderiv_soft = build_matderivative(1024,.95,40) 
     filename = './data_fs/processed/xppc00117_r136_refsub.derivative_matrix_soft'
     np.savetxt(filename,matderiv_soft.toarray(),fmt='%.4f')
@@ -99,6 +96,16 @@ def main():
     np.savetxt(filename,matderiv_sharp.toarray(),fmt='%.4f')
     #np.savetxt(filename,matderiv_sharp,fmt='%.4f')
 
+    calibfilename = '/home/coffee/projects/2dtimetool_simulation_data/extern/ascii_chirp-2000_1650_nfibers61_interference.calibration'
+    noetaloncalibfilename = '/home/coffee/projects/2dtimetool_simulation_data/extern/ascii_chirp-2000_1650_nfibers61_noetalon_interference.calibration'
+    calibmat = np.loadtxt(calibfilename)
+    calibmat_deriv = execute_matderivative(calibmat,matderiv_sharp) * np.abs(execute_matderivative(calibmat,matderiv_soft))
+    calibmat_deriv_p = np.copy(calibmat_deriv*(calibmat_deriv>0))
+    calibmat_deriv_n = np.copy(calibmat_deriv*(calibmat_deriv<0))
+    filename = calibfilename + '.derivative_p'
+    np.savetxt(filename,calibmat_deriv_p,fmt='%i')
+    filename = calibfilename + '.derivative_n'
+    np.savetxt(filename,calibmat_deriv_n,fmt='%i')
     
     wclist = subprocess.check_output('wc -l ./data_fs/processed/*r136_refsub*.out', shell=True).decode("utf-8").split('\n')
     I = []
@@ -106,6 +113,7 @@ def main():
     C = []
     G = []
     ipG = []
+    ipGderiv = []
     imax = 0
     dmax = 0
     expname = ''
@@ -129,7 +137,6 @@ def main():
                 """
                 HERE using the matrix multiply rather than the derivative to determine the location and amplitude
                 """
-                calibmat = np.loadtxt(calibfilename)
                 indsvals = convolve(mat,calibmat)
                 ipG = ipG + [100*len([i for i in indsvals[:,0] if (i>12 and i<17)])/indsvals.shape[0]]
                 filename= fullname + '.ip_indsvals_noetalon'
@@ -149,7 +156,21 @@ def main():
                 """
                 signalderivative = execute_matderivative(mat,matderiv_sharp) * np.abs(execute_matderivative(mat,matderiv_soft))
                 filename = fullname + '.matderivative'
-                np.savetxt(filename,signalderivative,fmt='%.4f')
+                np.savetxt(filename,signalderivative,fmt='%i')
+                out_p = np.matmul(calibmat_deriv_p.T,signalderivative)
+                filename = fullname + '.matderivative.result_p'
+                np.savetxt(filename,out_p,fmt='%i')
+                out_n = np.matmul(calibmat_deriv_n.T,signalderivative)
+                filename = fullname + '.matderivative.result_n'
+                np.savetxt(filename,out_n,fmt='%i')
+                (inds_p,inds_n) = (np.argmax(out_p,axis=0),np.argmax(out_n,axis=0))
+                rows=np.arange(inds_p.shape[0])
+                (indsvals_p,indsvals_n) = (out_p[inds_p,rows].astype(int),out_n[inds_n,rows].astype(int))
+                filename = fullname + '.matderivative.indsvals'
+                np.savetxt(filename,np.column_stack((inds_p,indsvals_p,inds_n,indsvals_n)),fmt='%i')
+                #ipGderiv = ipGderiv + [100*len([i for i in indsvals[:,0] if (i>12 and i<17)])/indsvals.shape[0]]
+                window=2
+                ipGderiv = ipGderiv + [100*np.sum(np.abs(inds_p-inds_n)<window)/inds_p.shape[0]]
 
                 """
                 indsvals = edgeconvolve(mat,calibmat)
@@ -176,19 +197,20 @@ def main():
                 G = G + [100*len([i for i in inds if (i>300 and i<550)])/len(inds)]
                 """
     
-    """
     CMAT = sparse.coo_matrix((C,(D,I)),shape=(dmax+1,imax+1)).toarray()
     filename='./data_fs/processed/%s_%s_count_mat.hist' % (expname,runnum)
     np.savetxt(filename,CMAT,fmt='%i')
     print(CMAT.T)
-    GMAT = sparse.coo_matrix((G,(D,I)),shape=(dmax+1,imax+1)).toarray()
+    #GMAT = sparse.coo_matrix((G,(D,I)),shape=(dmax+1,imax+1)).toarray()
+    #filename='./data_fs/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
+    #np.savetxt(filename,GMAT,fmt='%i')
     ipGMAT = sparse.coo_matrix((ipG,(D,I)),shape=(dmax+1,imax+1)).toarray()
-    filename='./data_fs/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
-    np.savetxt(filename,GMAT,fmt='%i')
     filename='./data_fs/processed/%s_%s_goodpct_mat_ip.hist' % (expname,runnum)
     np.savetxt(filename,ipGMAT,fmt='%i')
-    print(GMAT.T)
-    """
+    ipGderivMAT = sparse.coo_matrix((ipGderiv,(D,I)),shape=(dmax+1,imax+1)).toarray()
+    filename='./data_fs/processed/%s_%s_goodpct_mat_ipderiv.hist' % (expname,runnum)
+    np.savetxt(filename,ipGderivMAT,fmt='%i')
+    print(ipGderivMAT.T)
     return
 
 if __name__ == '__main__':
