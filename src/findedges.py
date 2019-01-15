@@ -64,6 +64,14 @@ def build_matderivative(npixels,rate=2./3,offset=10):
     Here we are trying to take the time derivative in order to not have the back and forth FFTs of the incoming signal, instead, 
     represent the derivative finding convolution as a matrix multiply
     """
+    data = [[np.power(rate,int(i))]*npixels for i in range(1,2*offset+1)]
+    offsets_p = [i for i in range(0,2*offset,1)]
+    offsets_n = [offset+i for i in range(0,2*offset,1)]
+    sp_mat_p = sparse.dia_matrix((data,offsets_p),shape=(npixels,npixels)) 
+    sp_mat_n = sparse.dia_matrix((data,offsets_n),shape=(npixels,npixels))
+    norm = np.sum(sp_mat_p,axis=0)
+    return sparse.csr_matrix((sp_mat_p-sp_mat_n)/norm).T
+    """
     meanmat=np.zeros(npixels+1,dtype=float)
     meanmat[:2*offset] = np.power(rate,np.arange(1,2*offset+1))
     meanmat[:2*offset] /= np.sum(meanmat[:2*offset])    # this is not quite right at the edges, but we will not worry about that so much... 
@@ -71,21 +79,25 @@ def build_matderivative(npixels,rate=2./3,offset=10):
     meanmat = np.tile(meanmat,npixels)
     newmat=(np.copy(meanmat[:npixels**2]) - np.copy(meanmat[offset:(npixels**2)+offset])).reshape(npixels,npixels)
     return newmat
+    """
 
 def execute_matderivative(mat,derivmat):
-    return np.matmul(derivmat,mat.T)
+    return derivmat*mat.T
     
 
 def main():
     calibfilename = '/home/coffee/projects/2dtimetool_simulation_data/extern/ascii_chirp-2000_1650_nfibers61_interference.calibration'
     noetaloncalibfilename = '/home/coffee/projects/2dtimetool_simulation_data/extern/ascii_chirp-2000_1650_nfibers61_noetalon_interference.calibration'
 
-    matderiv50 = build_matderivative(1024,.95,40) 
-    matderiv10 = build_matderivative(1024,.9,20) 
-    filename = './data_fs/processed/xppc00117_r136_refsub.derivative_matrix40'
-    np.savetxt(filename,matderiv50,fmt='%.4f')
-    filename = './data_fs/processed/xppc00117_r136_refsub.derivative_matrix20'
-    np.savetxt(filename,matderiv10,fmt='%.4f')
+    matderiv_soft = build_matderivative(1024,.95,40) 
+    filename = './data_fs/processed/xppc00117_r136_refsub.derivative_matrix_soft'
+    np.savetxt(filename,matderiv_soft.toarray(),fmt='%.4f')
+    #np.savetxt(filename,matderiv_soft,fmt='%.4f')
+
+    matderiv_sharp = build_matderivative(1024,.9,20) 
+    filename = './data_fs/processed/xppc00117_r136_refsub.derivative_matrix_sharp'
+    np.savetxt(filename,matderiv_sharp.toarray(),fmt='%.4f')
+    #np.savetxt(filename,matderiv_sharp,fmt='%.4f')
 
     
     wclist = subprocess.check_output('wc -l ./data_fs/processed/*r136_refsub*.out', shell=True).decode("utf-8").split('\n')
@@ -118,7 +130,7 @@ def main():
                 HERE using the matrix multiply rather than the derivative to determine the location and amplitude
                 """
                 calibmat = np.loadtxt(calibfilename)
-                indsvals = convolve(mat[:3,:],calibmat)
+                indsvals = convolve(mat,calibmat)
                 ipG = ipG + [100*len([i for i in indsvals[:,0] if (i>12 and i<17)])/indsvals.shape[0]]
                 filename= fullname + '.ip_indsvals_noetalon'
                 headerstr = 'maxind\tmax\t\t-- if the index is between 60 and 80 out of 120 delay bins from calibfile, then its a good shot'
@@ -135,7 +147,7 @@ def main():
                 ... like the overly narrowed weiner filter of Justin Burau
                 Then taking the abs of the result and multipying by a higher frequency derivative (smaller offset, faster decay)
                 """
-                signalderivative = execute_matderivative(mat,matderiv10) * np.abs(execute_matderivative(mat,matderiv50))
+                signalderivative = execute_matderivative(mat,matderiv_sharp) * np.abs(execute_matderivative(mat,matderiv_soft))
                 filename = fullname + '.matderivative'
                 np.savetxt(filename,signalderivative,fmt='%.4f')
 
