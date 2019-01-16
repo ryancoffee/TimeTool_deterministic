@@ -129,7 +129,7 @@ def main():
     	    delbin = int(m.group(6))
     	    imax = max(imax,ipmbin)
     	    dmax = max(dmax,delbin)
-    	    if nshots>3: # more than 10 spectra in a given delay and ipm 2D-bin
+    	    if nshots>1: # more than 10 spectra in a given delay and ipm 2D-bin
                 I = I + [ipmbin]
                 D = D + [delbin]
                 C = C + [nshots]
@@ -168,7 +168,8 @@ def main():
                 (indsvals_p,indsvals_n) = (out_p[inds_p,rows].astype(int),out_n[inds_n,rows].astype(int))
                 filename = fullname + '.matderivative.indsvals'
                 np.savetxt(filename,np.column_stack((inds_p,indsvals_p,inds_n,indsvals_n)),fmt='%i')
-                #ipGderiv = ipGderiv + [100*len([i for i in indsvals[:,0] if (i>12 and i<17)])/indsvals.shape[0]]
+                #G = G + [100*len([i for i in inds_p if (i>12 and i<17)])/inds_p.shape[0]]
+                G = G + [100*np.sum((inds_p>12)*(inds_p<17))/inds_p.shape[0]]
                 window=2
                 ipGderiv = ipGderiv + [100*np.sum(np.abs(inds_p-inds_n)<window)/inds_p.shape[0]]
 
@@ -197,20 +198,15 @@ def main():
                 G = G + [100*len([i for i in inds if (i>300 and i<550)])/len(inds)]
                 """
     
-    CMAT = sparse.coo_matrix((C,(D,I)),shape=(dmax+1,imax+1)).toarray()
-    filename='./data_fs/processed/%s_%s_count_mat.hist' % (expname,runnum)
-    np.savetxt(filename,CMAT,fmt='%i')
-    print(CMAT.T)
-    #GMAT = sparse.coo_matrix((G,(D,I)),shape=(dmax+1,imax+1)).toarray()
-    #filename='./data_fs/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
-    #np.savetxt(filename,GMAT,fmt='%i')
-    ipGMAT = sparse.coo_matrix((ipG,(D,I)),shape=(dmax+1,imax+1)).toarray()
+    GMAT = np.column_stack((I,D,G,C))
+    filename='./data_fs/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
+    np.savetxt(filename,GMAT,fmt='%i')
+    ipGMAT = np.columnstack((I,D,ipG,C))
     filename='./data_fs/processed/%s_%s_goodpct_mat_ip.hist' % (expname,runnum)
     np.savetxt(filename,ipGMAT,fmt='%i')
-    ipGderivMAT = sparse.coo_matrix((ipGderiv,(D,I)),shape=(dmax+1,imax+1)).toarray()
+    ipGderivMAT = np.column_stack((I,D,ipGderiv,C))
     filename='./data_fs/processed/%s_%s_goodpct_mat_ipderiv.hist' % (expname,runnum)
     np.savetxt(filename,ipGderivMAT,fmt='%i')
-    print(ipGderivMAT.T)
     return
 
 if __name__ == '__main__':

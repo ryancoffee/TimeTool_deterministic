@@ -171,6 +171,7 @@ ip_file(r,i,d)=sprintf('./data_fs/processed/xppc00117_%s_ipm%i_del%i.out.ip_inds
 noetalon_ip_file(r,i,d)=sprintf('./data_fs/processed/xppc00117_%s_ipm%i_del%i.out.ip_indsvals_noetalon',r,i,d)
 pctgoodfile(r) = sprintf('./data_fs/processed/xppc00117_%s_goodpct_mat.hist',r)
 ip_pctgoodfile(r) = sprintf('./data_fs/processed/xppc00117_%s_goodpct_mat_ip.hist',r)
+ipderiv_pctgoodfile(r) = sprintf('./data_fs/processed/xppc00117_%s_goodpct_mat_ipderiv.hist',r)
 GNUTERM = "qt"
 x = 0.0
 step=log(1e2/1e0)/19
@@ -180,7 +181,8 @@ delay = 3
 set xlabel 'Deposited energy density [J/cm^3]'
 set ylabel 'signal visability [%]'
 set term png size 600,600 
-set output sprintf('./figs/plotting.goodpct_%s_del%i.energydensity.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.energydensity_new.png','r136_refsub',delay)
+set key top left
 set grid
 set log x
 unset log y
@@ -196,30 +198,32 @@ fit f(x) './data_fs/reference/yag.attlen.absdose' u 0:($4*1e-9) via a,b
 fit g(x) './data_fs/reference/yag.attlen.absdose' u 0:($3*1e-6) via aa,bb
 fit h(x) './data_fs/reference/yag.attlen.absdose' u 0:($1*1e-3) via aaa,bbb
 
-plot 	pctgoodfile('r136_refsub') mat u (f($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
-	ip_pctgoodfile('r136_refsub') mat u (f($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation comparison'
+plot 	pctgoodfile('r136_refsub') mat u (f($1)):($2==3?$3:0./0) w histeps lw 2 title 'rising edge alone',\
+	ipderiv_pctgoodfile('r136_refsub') u (f($1)):($2==3?$3:0./0):(100/sqrt($4)) w errorbars lw 2 title 'rise/fall comparison'
 
+set errorbars small
 set term png size 600,600 
-set output sprintf('./figs/plotting.goodpct_%s_del%i.absdose.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.absdose_new.png','r136_refsub',delay)
 set xlabel 'Absorbed dose [mJ/cm^2]'
-plot 	pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
-	ip_pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
+plot	ipderiv_pctgoodfile('r136_refsub') u (g($1)):($2==3?$3:0./0):(100/sqrt($4)) w yerrorbars lw 2 title 'rise/fall comparison'
+	#pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'rising edge alone'
+
 
 set term png size 600,600 
-set output sprintf('./figs/plotting.goodpct_%s_del%i.incident.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.incident_new.png','r136_refsub',delay)
 set xlabel 'Incident energy [{/Symbol m}J]'
-plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
-	ip_pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
+plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'rising edge alone',\
+	ipderiv_pctgoodfile('r136_refsub') u (h($1)):($2==3?$3:0./0):(100/sqrt($4)) w errorbars lw 2 title 'rise/fall comparison'
 
 set term png size 600,600 
-set output sprintf('./figs/plotting.goodpct_%s_del%i.absdose.forUED.png','r136_refsub',delay)
+set output sprintf('./figs/plotting.goodpct_%s_del%i.absdose.forUED_new.png','r136_refsub',delay)
 set xlabel 'Absorbed dose [mJ/cm^2]'
-set label 1 "100 fC at 4 MeV\n10% absorption\n1 mm YAG\n100 {/Symbol m}m diam." center at .5,100
-set arrow 1 from .5,70 to .5,40 filled
-set label 2 "50 {/Symbol m}m diam." center at 2,10
-set arrow 2 from 2,20 to 2,40 filled
-plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'Fourier method',\
-	ip_pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'simulation method'
+set label 1 "100 fC at 4 MeV\n25% absorption\n1 mm YAG\n100 {/Symbol m}m diam." center at (2.5*.5),105
+set arrow 1 from (2.5*.5),85 to (2.5*.5),55 filled
+set label 2 "50 {/Symbol m}m diam." center at (2.5*2),45
+set arrow 2 from (2.5*2),50 to (2.5*2),80 filled
+plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'rising edge alone',\
+	ipderiv_pctgoodfile('r136_refsub') u (h($1)):($2==3?$3:0./0):(100/sqrt($4)) w errorbars lw 2 title 'rise/fall comparison'
 #Final set of parameters            Asymptotic Standard Error
 #=======================            ==========================
 #a               = 0.00438095       +/- 1.118e-07    (0.002551%)
