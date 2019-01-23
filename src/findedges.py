@@ -96,8 +96,7 @@ def main():
     np.savetxt(filename,matderiv_sharp.toarray(),fmt='%.4f')
     #np.savetxt(filename,matderiv_sharp,fmt='%.4f')
 
-    calibfilename = './data_fs/extern/ascii_chirp-2000_1650_nfibers61_interference.calibration'
-    noetaloncalibfilename = './data_fs/extern/ascii_chirp-2000_1650_nfibers61_noetalon_interference.calibration'
+    calibfilename = './data_fs/extern/chirp-2000_interferedelay1650_ncalibdelays16_interference.calibration'
     calibmat = np.loadtxt(calibfilename)
     calibmat_deriv = execute_matderivative(calibmat,matderiv_sharp) * np.abs(execute_matderivative(calibmat,matderiv_soft))
     calibmat_deriv_p = np.copy(calibmat_deriv*(calibmat_deriv>0))
