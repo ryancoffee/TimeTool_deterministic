@@ -15,4 +15,5 @@ data_container/processed/*.diff
 *.swp
 data_container/raw/refsub/*.dat*
 data_fs
+nothing
 
