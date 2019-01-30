@@ -218,12 +218,12 @@ plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 ti
 set term png size 600,600 
 set output sprintf('./figs/plotting.goodpct_%s_del%i.absdose.forUED_new.png','r136_refsub',delay)
 set xlabel 'Absorbed dose [mJ/cm^2]'
-set label 1 "100 fC at 4 MeV\n25% absorption\n1 mm YAG\n100 {/Symbol m}m diam." center at (2.5*.5),105
-set arrow 1 from (2.5*.5),85 to (2.5*.5),55 filled
-set label 2 "50 {/Symbol m}m diam." center at (2.5*2),45
-set arrow 2 from (2.5*2),50 to (2.5*2),80 filled
-plot 	pctgoodfile('r136_refsub') mat u (h($1)):($2==3?$3:0./0) w histeps lw 2 title 'rising edge alone',\
-	ipderiv_pctgoodfile('r136_refsub') u (h($1)):($2==3?$3:0./0):(100/sqrt($4)) w errorbars lw 2 title 'rise/fall comparison'
+set label 1 "100 fC at 4 MeV\n25% absorption\n1 mm YAG\n100 {/Symbol m}m diam." center at (2.5*.5),45
+set arrow 1 from (2.5*.5),55 to (2.5*.5),85 filled
+#set label 2 "50 {/Symbol m}m diam." center at (2.5*2),45
+#set arrow 2 from (2.5*2),50 to (2.5*2),80 filled
+plot 	pctgoodfile('r136_refsub') mat u (g($1)):($2==3?$3:0./0) w histeps lw 2 title 'rising edge alone',\
+	ipderiv_pctgoodfile('r136_refsub') u (g($1)):($2==3?$3:0./0):(100/sqrt($4)) w errorbars lw 2 title 'rise/fall comparison'
 #Final set of parameters            Asymptotic Standard Error
 #=======================            ==========================
 #a               = 0.00438095       +/- 1.118e-07    (0.002551%)
