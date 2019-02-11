@@ -16,4 +16,9 @@ data_container/processed/*.diff
 data_container/raw/refsub/*.dat*
 data_fs
 nothing
+data_container/*
+spatial/out*
+spatial/gen
+spatial/target
+spatial/project
 

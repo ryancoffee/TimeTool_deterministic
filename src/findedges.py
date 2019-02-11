@@ -200,7 +200,7 @@ def main():
     GMAT = np.column_stack((I,D,G,C))
     filename='./data_fs/processed/%s_%s_goodpct_mat.hist' % (expname,runnum)
     np.savetxt(filename,GMAT,fmt='%i')
-    ipGMAT = np.columnstack((I,D,ipG,C))
+    ipGMAT = np.column_stack((I,D,ipG,C))
     filename='./data_fs/processed/%s_%s_goodpct_mat_ip.hist' % (expname,runnum)
     np.savetxt(filename,ipGMAT,fmt='%i')
     ipGderivMAT = np.column_stack((I,D,ipGderiv,C))

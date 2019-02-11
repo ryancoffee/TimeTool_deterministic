@@ -1,0 +1,2339 @@
+---------------------------
+Estimated Total Memories: 
+---------------------------
+  LUT5: 3378.0
+  RAM32M: 974.0
+  DSPs: 3378.0
+  RAM18: 1.0
+  RAM36: 4.0
+---------------------------
+
+
+
+---------------------------------------------------------------------
+Name: x574
+Type: Reg[Bit]
+Src:  Deriv.scala:80:11
+Src:            if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])}
+---------------------------------------------------------------------
+Symbol:     x574 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x588 = RegWrite(x574,x584,Set()) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x808 = RegRead(x574) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x589: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x588: RegWrite
+  x600: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x808: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: best_falling_sram_0 (x723)
+Type: SRAM1[score]
+Src:  Deriv.scala:91:46
+Src:            val best_falling_sram = SRAM[score](rowTileSize)
+---------------------------------------------------------------------
+Symbol:     x723 = SRAMNew(List(Const(128)),SRAM1[score])
+Instances: 1
+  RAM36: 2.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: BRAM
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x731 = SRAMBankedWrite(x723,Vector(x727),Vector(List(Const(0))),Vector(x728),Vector(Set())) {}
+             best_falling_sram(r % rowTileSize) = falling.deq() (Deriv.scala:92:46)
+               Directly Banked: true
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x766 = SRAMBankedRead(x723,Vector(List(Const(0))),Vector(b762),Vector(Set(b763)),Vec[score]) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:141)
+               Directly Banked: true
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x740: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x731: SRAMBankedWrite
+  x779: Switch (-1) [Level: OuterControl, Loop: Single, Schedule: Fork]
+    x777: SwitchCase (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+      x775: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Streaming]
+        x770: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+          x766: SRAMBankedRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x666
+Type: Reg[Bit]
+Src:  Deriv.scala:90:11
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
+---------------------------------------------------------------------
+Symbol:     x666 = RegNew(Const(false))
+Instances: 1
+  RAM32M: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x682 = RegWrite(x666,x678,Set()) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x816 = RegRead(x666) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x683: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x682: RegWrite
+  x722: Switch (-1) [Level: OuterControl, Loop: Single, Schedule: Fork]
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: best_rising_sram_0 (x662)
+Type: SRAM1[score]
+Src:  Deriv.scala:88:45
+Src:            val best_rising_sram = SRAM[score](rowTileSize)
+---------------------------------------------------------------------
+Symbol:     x662 = SRAMNew(List(Const(128)),SRAM1[score])
+Instances: 1
+  RAM36: 2.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: BRAM
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x672 = SRAMBankedWrite(x662,Vector(x669),Vector(List(Const(0))),Vector(x822),Vector(Set())) {}
+             best_rising_sram(r % rowTileSize) = rising.deq() (Deriv.scala:89:45)
+               Directly Banked: true
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x709 = SRAMBankedRead(x662,Vector(List(Const(0))),Vector(b705),Vector(Set(b706)),Vec[score]) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:140)
+               Directly Banked: true
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x683: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x672: SRAMBankedWrite
+  x722: Switch (-1) [Level: OuterControl, Loop: Single, Schedule: Fork]
+    x720: SwitchCase (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+      x718: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Streaming]
+        x713: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+          x709: SRAMBankedRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: best_falling_1 (x541)
+Type: Reg[score]
+Src:  Deriv.scala:75:40
+Src:            val best_falling = Reg[score](score(0, -999.to[I32])).buffer
+---------------------------------------------------------------------
+Symbol:     x541 = RegNew(x537)
+Instances: 1
+  LUT5: 256.0
+  RAM32M: 64.0
+  DSPs: 256.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    Fold
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x622 = RegRead(x541) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:88)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         1 [Type:WR]:
+           - Mux Port #0: 
+             x639 = RegWrite(x541,x637,Set(x638)) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:112)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         1 [Type:RD]:
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x632: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x622: RegRead
+  x643: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x639: RegWrite
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x725
+Type: Reg[Bit]
+Src:  Deriv.scala:93:11
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram
+---------------------------------------------------------------------
+Symbol:     x725 = RegNew(Const(false))
+Instances: 1
+  RAM32M: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x739 = RegWrite(x725,x737,Set()) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x818 = RegRead(x725) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x740: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x739: RegWrite
+  x779: Switch (-1) [Level: OuterControl, Loop: Single, Schedule: Fork]
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x474
+Type: StreamIn[Fix[TRUE,_16,_0]]
+Src:  Deriv.scala:70:20
+Src:          input_fifo load input_dram(r, 0::COLS)
+---------------------------------------------------------------------
+Symbol:     x474 = StreamInNew(BurstDataBus())
+Instances: 1
+  RAM32M: 8.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x526 = StreamInBankedRead(x474,ArrayBuffer(Set(b520))) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x529: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+  x526: StreamInBankedRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x571
+Type: Reg[Bit]
+Src:  Deriv.scala:80:17
+Src:            if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])}
+---------------------------------------------------------------------
+Symbol:     x571 = RegNew(Const(false))
+Instances: 1
+  LUT5: 25.0
+  RAM32M: 5.0
+  DSPs: 25.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    5
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x585 = RegWrite(x571,x575,Set()) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+         2 [Type:WR]:
+         2 [Type:RD]:
+         3 [Type:WR]:
+         3 [Type:RD]:
+         4 [Type:WR]:
+         4 [Type:RD]:
+           - Mux Port #0: 
+             x627 = RegRead(x571) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x589: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x585: RegWrite
+  x632: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x627: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x665
+Type: Reg[Bit]
+Src:  Deriv.scala:90:32
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
+---------------------------------------------------------------------
+Symbol:     x665 = RegNew(Const(false))
+Instances: 1
+  RAM32M: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x681 = RegWrite(x665,x677,Set()) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:32)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x815 = RegRead(x665) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:32)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x683: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x681: RegWrite
+  x722: Switch (-1) [Level: OuterControl, Loop: Single, Schedule: Fork]
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: best_rising_1 (x539)
+Type: Reg[score]
+Src:  Deriv.scala:74:39
+Src:            val best_rising = Reg[score](score(0, -999.to[I32])).buffer
+---------------------------------------------------------------------
+Symbol:     x539 = RegNew(x537)
+Instances: 1
+  LUT5: 576.0
+  RAM32M: 96.0
+  DSPs: 576.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    3
+     Padding:  List()
+     Accum:    Fold
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x596 = RegWrite(x539,x594,Set(x595)) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:110)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+         2 [Type:WR]:
+         2 [Type:RD]:
+           - Mux Port #0: 
+             x612 = RegRead(x539) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:51)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x600: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x596: RegWrite
+  x617: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x612: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x749
+Type: StreamOut[Tup2[score,Bit]]
+Src:  Deriv.scala:93:141
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram
+---------------------------------------------------------------------
+Symbol:     x749 = StreamOutNew(BurstFullDataBus())
+Instances: 1
+  RAM32M: 33.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x769 = StreamOutBankedWrite(x749,ArrayBuffer(x768),ArrayBuffer(Set(b763))) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:141)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+
+
+
+Control Tree: 
+x770: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+  x769: StreamOutBankedWrite
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x644
+Type: Reg[Bit]
+Src:  Deriv.scala:83:17
+Src:            if (c == COLS-1) falling.enq(best_falling.value)
+---------------------------------------------------------------------
+Symbol:     x644 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x650 = RegWrite(x644,x648,Set()) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x656 = RegRead(x644) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+           - Mux Port #1: 
+             x813 = RegRead(x644) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x652: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x650: RegWrite
+  x660: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x813: RegRead
+    x656: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x693
+Type: StreamIn[Bit]
+Src:  Deriv.scala:90:140
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
+---------------------------------------------------------------------
+Symbol:     x693 = StreamInNew(BurstAckBus)
+Instances: 1
+  RAM32M: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x715 = StreamInBankedRead(x693,ArrayBuffer(Set())) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:140)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x717: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+  x715: StreamInBankedRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x504
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:70:20
+Src:          input_fifo load input_dram(r, 0::COLS)
+---------------------------------------------------------------------
+Symbol:     x504 = RegNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x510 = RegWrite(x504,x509,Set()) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x521 = RegRead(x504) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x530: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x515: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x510: RegWrite
+  x529: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+    x521: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x505
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:70:20
+Src:          input_fifo load input_dram(r, 0::COLS)
+---------------------------------------------------------------------
+Symbol:     x505 = RegNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x512 = RegWrite(x505,x511,Set()) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x523 = RegRead(x505) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x530: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x515: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x512: RegWrite
+  x529: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+    x523: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x601
+Type: Reg[Bit]
+Src:  Deriv.scala:81:17
+Src:            if (c == COLS-1) rising.enq(best_rising.value)
+---------------------------------------------------------------------
+Symbol:     x601 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x607 = RegWrite(x601,x605,Set()) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x613 = RegRead(x601) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+           - Mux Port #1: 
+             x809 = RegRead(x601) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x609: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x607: RegWrite
+  x617: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x809: RegRead
+    x613: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x743
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:93:90
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram
+---------------------------------------------------------------------
+Symbol:     x743 = RegNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x746 = RegWrite(x743,x745,Set()) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:90)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x751 = RegRead(x743) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:90)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x777: SwitchCase (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x747: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x746: RegWrite
+  x775: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Streaming]
+    x759: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+      x751: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x573
+Type: Reg[Bit]
+Src:  Deriv.scala:80:33
+Src:            if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])}
+---------------------------------------------------------------------
+Symbol:     x573 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x587 = RegWrite(x573,x583,Set()) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:33)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x595 = RegRead(x573) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:33)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+           - Mux Port #1: 
+             x807 = RegRead(x573) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:33)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x589: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x587: RegWrite
+  x600: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x807: RegRead
+    x595: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x602
+Type: Reg[Bit]
+Src:  Deriv.scala:81:11
+Src:            if (c == COLS-1) rising.enq(best_rising.value)
+---------------------------------------------------------------------
+Symbol:     x602 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x608 = RegWrite(x602,x606,Set()) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x810 = RegRead(x602) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x609: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x608: RegWrite
+  x617: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x810: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: t_0 (x548)
+Type: Reg[Fix[TRUE,_16,_16]]
+Src:  Deriv.scala:79:29
+Src:            val t = Reduce(Reg[T])(deriv_window by 1){i => sr(i).to[T] * sharp_lut(i)}{_+_}
+---------------------------------------------------------------------
+Symbol:     x548 = RegNew(Const(0))
+Instances: 1
+  LUT5: 1568.0
+  RAM32M: 112.0
+  DSPs: 1568.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    7
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x569 = RegWrite(x548,x825,Set()) {}
+             val t = Reduce(Reg[T])(deriv_window by 1){i => sr(i).to[T] * sharp_lut(i)}{_+_} (Deriv.scala:79:85)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x577 = RegRead(x548) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:59)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         2 [Type:WR]:
+         2 [Type:RD]:
+           - Mux Port #0: 
+             x592 = RegRead(x548) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:123)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         3 [Type:WR]:
+         3 [Type:RD]:
+         4 [Type:WR]:
+         4 [Type:RD]:
+         5 [Type:WR]:
+         5 [Type:RD]:
+           - Mux Port #0: 
+             x620 = RegRead(x548) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:59)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         6 [Type:WR]:
+         6 [Type:RD]:
+           - Mux Port #0: 
+             x635 = RegRead(x548) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:125)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x570: UnrolledReduce (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+    x569: RegWrite
+  x589: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x577: RegRead
+  x600: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x592: RegRead
+  x632: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x620: RegRead
+  x643: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x635: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x724
+Type: Reg[Bit]
+Src:  Deriv.scala:93:32
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram
+---------------------------------------------------------------------
+Symbol:     x724 = RegNew(Const(false))
+Instances: 1
+  RAM32M: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x738 = RegWrite(x724,x736,Set()) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:32)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x817 = RegRead(x724) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:32)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x740: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x738: RegWrite
+  x779: Switch (-1) [Level: OuterControl, Loop: Single, Schedule: Fork]
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: input_fifo_0 (x469)
+Type: FIFO[Fix[TRUE,_16,_0]]
+Src:  Deriv.scala:65:35
+Src:          val input_fifo = FIFO[I16](colTileSize)
+---------------------------------------------------------------------
+Symbol:     x469 = FIFONew(Const(64))
+Instances: 1
+  RAM18: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: BRAM
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x528 = FIFOBankedEnq(x469,ArrayBuffer(x527),ArrayBuffer(Set(x525, b520))) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x544 = FIFOBankedDeq(x469,ArrayBuffer(Set(Const(true))),Vec[Fix[TRUE,_16,_0]]) {}
+             sr <<= input_fifo.deq() (Deriv.scala:78:32)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x781: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x531: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Streaming]
+    x530: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+      x529: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+        x528: FIFOBankedEnq
+  x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+    x547: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+      x544: FIFOBankedDeq
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x619
+Type: Reg[Bit]
+Src:  Deriv.scala:82:11
+Src:            if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])}
+---------------------------------------------------------------------
+Symbol:     x619 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x631 = RegWrite(x619,x629,Set()) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x812 = RegRead(x619) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x632: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x631: RegWrite
+  x643: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x812: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: rising_0 (x470)
+Type: FIFO[score]
+Src:  Deriv.scala:66:33
+Src:          val rising = FIFO[score](4)//(score(0,-999.to[I32]))
+---------------------------------------------------------------------
+Symbol:     x470 = FIFONew(Const(4))
+Instances: 1
+  RAM32M: 32.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x614 = FIFOBankedEnq(x470,ArrayBuffer(x612),ArrayBuffer(Set(Const(true), x613))) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:38)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x668 = FIFOBankedDeq(x470,ArrayBuffer(Set(Const(true))),Vec[score]) {}
+             best_rising_sram(r % rowTileSize) = rising.deq() (Deriv.scala:89:57)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x781: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+    x617: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+      x614: FIFOBankedEnq
+  x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+    x683: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+      x668: FIFOBankedDeq
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x664
+Type: Reg[Bit]
+Src:  Deriv.scala:90:51
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
+---------------------------------------------------------------------
+Symbol:     x664 = RegNew(Const(false))
+Instances: 1
+  RAM32M: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x680 = RegWrite(x664,x676,Set()) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:51)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x735 = RegRead(x664) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:51)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x683: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x680: RegWrite
+  x740: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x735: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x506
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:70:20
+Src:          input_fifo load input_dram(r, 0::COLS)
+---------------------------------------------------------------------
+Symbol:     x506 = RegNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x514 = RegWrite(x506,x513,Set()) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x805 = RegRead(x506) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x530: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x515: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x514: RegWrite
+  x529: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+    x805: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: falling_0 (x471)
+Type: FIFO[score]
+Src:  Deriv.scala:67:34
+Src:          val falling = FIFO[score](4)//(score(0,999.to[I32]))
+---------------------------------------------------------------------
+Symbol:     x471 = FIFONew(Const(4))
+Instances: 1
+  RAM32M: 32.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x657 = FIFOBankedEnq(x471,ArrayBuffer(x655),ArrayBuffer(Set(Const(true), x656))) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:39)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x726 = FIFOBankedDeq(x471,ArrayBuffer(Set(Const(true))),Vec[score]) {}
+             best_falling_sram(r % rowTileSize) = falling.deq() (Deriv.scala:92:59)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x781: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+    x660: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+      x657: FIFOBankedEnq
+  x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+    x740: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+      x726: FIFOBankedDeq
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x663
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:89:30
+Src:            best_rising_sram(r % rowTileSize) = rising.deq()
+---------------------------------------------------------------------
+Symbol:     x663 = RegNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x679 = RegWrite(x663,x822,Set()) {}
+             best_rising_sram(r % rowTileSize) = rising.deq() (Deriv.scala:89:30)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x728 = RegRead(x663) {}
+             best_rising_sram(r % rowTileSize) = rising.deq() (Deriv.scala:89:30)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x780: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x683: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x679: RegWrite
+  x740: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x728: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: ROWS_TODO (x449)
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:54:26
+Src:      val ROWS_TODO = ArgIn[Int]
+---------------------------------------------------------------------
+Symbol:     x449 = ArgInNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    Buffer
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x454 = SetReg(x449,x453) {}
+             setArg(ROWS_TODO, args(0).to[Int]) (Deriv.scala:57:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x673 = RegRead(x449) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (2)>
+
+             x804 = RegRead(x449) {}
+             Foreach(ROWS_TODO by 1){r => (Deriv.scala:64:15)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (1)>
+
+             x732 = RegRead(x449) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+           - Mux Port #1: 
+             x459 = RegRead(x449) {}
+             val output_rising_dram = DRAM[score](ROWS_TODO) (Deriv.scala:60:42)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+             x462 = RegRead(x449) {}
+             val output_falling_dram = DRAM[score](ROWS_TODO) (Deriv.scala:61:43)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (1)>
+
+
+
+
+Control Tree: 
+Host
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: sr_0 (x542)
+Type: RegFile1[Fix[TRUE,_16,_0]]
+Src:  Deriv.scala:76:32
+Src:            val sr = RegFile[I16](deriv_window)
+---------------------------------------------------------------------
+Symbol:     x542 = RegFileNew(List(Const(20)),None)
+Instances: 1
+  LUT5: 64.0
+  RAM32M: 16.0
+  DSPs: 64.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x546 = RegFileShiftIn(x542,x545,List(Const(0)),Set(),0) {}
+             sr <<= input_fifo.deq() (Deriv.scala:78:14)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x554 = RegFileVectorRead(x542,Vector(List(b552)),Vector(Set(b553, b536, b468)),Vec[Fix[TRUE,_16,_0]]) {}
+             val t = Reduce(Reg[T])(deriv_window by 1){i => sr(i).to[T] * sharp_lut(i)}{_+_} (Deriv.scala:79:60)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x547: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x546: RegFileShiftIn
+  x570: UnrolledReduce (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+    x554: RegFileVectorRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x692
+Type: StreamOut[Tup2[score,Bit]]
+Src:  Deriv.scala:90:140
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
+---------------------------------------------------------------------
+Symbol:     x692 = StreamOutNew(BurstFullDataBus())
+Instances: 1
+  RAM32M: 33.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x712 = StreamOutBankedWrite(x692,ArrayBuffer(x711),ArrayBuffer(Set(b706))) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:140)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+
+
+
+Control Tree: 
+x713: UnrolledForeach (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+  x712: StreamOutBankedWrite
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x645
+Type: Reg[Bit]
+Src:  Deriv.scala:83:11
+Src:            if (c == COLS-1) falling.enq(best_falling.value)
+---------------------------------------------------------------------
+Symbol:     x645 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x651 = RegWrite(x645,x649,Set()) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x814 = RegRead(x645) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x652: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x651: RegWrite
+  x660: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x814: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x572
+Type: Reg[Bit]
+Src:  Deriv.scala:80:39
+Src:            if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])}
+---------------------------------------------------------------------
+Symbol:     x572 = RegNew(Const(false))
+Instances: 1
+  LUT5: 25.0
+  RAM32M: 5.0
+  DSPs: 25.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    5
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x586 = RegWrite(x572,x576,Set()) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:39)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+         2 [Type:WR]:
+         2 [Type:RD]:
+         3 [Type:WR]:
+         3 [Type:RD]:
+         4 [Type:WR]:
+         4 [Type:RD]:
+           - Mux Port #0: 
+             x625 = RegRead(x572) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:39)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x589: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x586: RegWrite
+  x632: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x625: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: sharp_lut_0 (x543)
+Type: LUT1[Fix[TRUE,_16,_16]]
+Src:  Deriv.scala:77:47
+Src:            val sharp_lut = LUT[T](deriv_window)(sharp_kernel.map(_.to[T]):_*)
+---------------------------------------------------------------------
+Symbol:     x543 = LUTNew(List(Const(20)),List(Const(0.0000457763671875), Const(0.000335693359375), Const(0.001953125), Const(0.0084991455078125), Const(0.028045654296875), Const(0.069122314453125), Const(0.124359130859375), Const(0.1548919677734375), Const(0.1126861572265625), Const(0), Const(-0.1126861572265625), Const(-0.1548919677734375), Const(-0.124359130859375), Const(-0.069122314453125), Const(-0.028045654296875), Const(-0.0084991455078125), Const(-0.001953125), Const(-0.000335693359375), Const(-0.0000457763671875), Const(0)),LUT1[Fix[TRUE,_16,_16]])
+Instances: 1
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x559 = LUTBankedRead(x543,Vector(List(b552)),Vector(b552),Vector(Set(b553, b536, b468)),Vec[Fix[TRUE,_16,_16]]) {}
+             val t = Reduce(Reg[T])(deriv_window by 1){i => sr(i).to[T] * sharp_lut(i)}{_+_} (Deriv.scala:79:81)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x570: UnrolledReduce (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+  x559: LUTBankedRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x748
+Type: StreamOut[BurstCmd]
+Src:  Deriv.scala:93:141
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram
+---------------------------------------------------------------------
+Symbol:     x748 = StreamOutNew(BurstCmdBus)
+Instances: 1
+  RAM32M: 49.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x758 = StreamOutBankedWrite(x748,ArrayBuffer(x756),ArrayBuffer(Set(x757))) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:141)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+
+
+
+Control Tree: 
+x759: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+  x758: StreamOutBankedWrite
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: t_1 (x549)
+Type: Reg[Fix[TRUE,_16,_16]]
+Src:  Deriv.scala:79:29
+Src:            val t = Reduce(Reg[T])(deriv_window by 1){i => sr(i).to[T] * sharp_lut(i)}{_+_}
+---------------------------------------------------------------------
+Symbol:     x549 = RegNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    Buffer
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+         0 [Type:RD]:
+
+
+
+Control Tree: 
+x570: UnrolledReduce (-1) [Level: InnerControl, Loop: Looped, Schedule: Pipelined]
+  x825: RegAccumFMA
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x691
+Type: StreamOut[BurstCmd]
+Src:  Deriv.scala:90:140
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
+---------------------------------------------------------------------
+Symbol:     x691 = StreamOutNew(BurstCmdBus)
+Instances: 1
+  RAM32M: 49.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x701 = StreamOutBankedWrite(x691,ArrayBuffer(x699),ArrayBuffer(Set(x700))) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:140)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+
+
+
+Control Tree: 
+x702: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+  x701: StreamOutBankedWrite
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x473
+Type: FIFO[IssuedCmd]
+Src:  Deriv.scala:70:20
+Src:          input_fifo load input_dram(r, 0::COLS)
+---------------------------------------------------------------------
+Symbol:     x473 = FIFONew(Const(16))
+Instances: 1
+  RAM32M: 48.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x501 = FIFOBankedEnq(x473,ArrayBuffer(x500),ArrayBuffer(Set(Const(true)))) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x507 = FIFOBankedDeq(x473,ArrayBuffer(Set(Const(true))),Vec[IssuedCmd]) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x531: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Streaming]
+  x502: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x501: FIFOBankedEnq
+  x530: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+    x515: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+      x507: FIFOBankedDeq
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: COLS (x447)
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:52:21
+Src:      val COLS = ArgIn[Int]
+---------------------------------------------------------------------
+Symbol:     x447 = ArgInNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    Buffer
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x450 = SetReg(x447,x446) {}
+             setArg(COLS, input_data.cols) (Deriv.scala:55:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x475 = RegRead(x447) {}
+             val input_dram = DRAM[I16](ROWS, COLS) (Deriv.scala:58:38)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (1)>
+
+             x646 = RegRead(x447) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (2)>
+
+             x603 = RegRead(x447) {}
+             if (c == COLS-1) rising.enq(best_rising.value) (Deriv.scala:81:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (3)>
+
+             x806 = RegRead(x447) {}
+             Foreach(COLS by 1){c => (Deriv.scala:73:17)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+           - Mux Port #1: 
+             x456 = RegRead(x447) {}
+             val input_dram = DRAM[I16](ROWS, COLS) (Deriv.scala:58:38)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+Host
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x472
+Type: StreamOut[BurstCmd]
+Src:  Deriv.scala:70:20
+Src:          input_fifo load input_dram(r, 0::COLS)
+---------------------------------------------------------------------
+Symbol:     x472 = StreamOutNew(BurstCmdBus)
+Instances: 1
+  RAM32M: 49.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x499 = StreamOutBankedWrite(x472,ArrayBuffer(x497),ArrayBuffer(Set(x498))) {}
+             input_fifo load input_dram(r, 0::COLS) (Deriv.scala:70:20)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+
+
+
+Control Tree: 
+x502: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+  x499: StreamOutBankedWrite
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: best_falling_0 (x540)
+Type: Reg[score]
+Src:  Deriv.scala:75:40
+Src:            val best_falling = Reg[score](score(0, -999.to[I32])).buffer
+---------------------------------------------------------------------
+Symbol:     x540 = RegNew(x537)
+Instances: 1
+  LUT5: 576.0
+  RAM32M: 96.0
+  DSPs: 576.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    3
+     Padding:  List()
+     Accum:    Fold
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x640 = RegWrite(x540,x637,Set(x638)) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:112)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+         2 [Type:WR]:
+         2 [Type:RD]:
+           - Mux Port #0: 
+             x655 = RegRead(x540) {}
+             if (c == COLS-1) falling.enq(best_falling.value) (Deriv.scala:83:53)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x643: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x640: RegWrite
+  x660: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x655: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: ROWS (x448)
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:53:21
+Src:      val ROWS = ArgIn[Int]
+---------------------------------------------------------------------
+Symbol:     x448 = ArgInNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    Buffer
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x451 = SetReg(x448,x444) {}
+             setArg(ROWS, input_data.rows) (Deriv.scala:56:11)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x455 = RegRead(x448) {}
+             val input_dram = DRAM[I16](ROWS, COLS) (Deriv.scala:58:32)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+Host
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x618
+Type: Reg[Bit]
+Src:  Deriv.scala:82:33
+Src:            if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])}
+---------------------------------------------------------------------
+Symbol:     x618 = RegNew(Const(false))
+Instances: 1
+  LUT5: 4.0
+  RAM32M: 2.0
+  DSPs: 4.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x630 = RegWrite(x618,x628,Set()) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:33)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+         1 [Type:WR]:
+         1 [Type:RD]:
+           - Mux Port #0: 
+             x638 = RegRead(x618) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:33)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+           - Mux Port #1: 
+             x811 = RegRead(x618) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])} (Deriv.scala:82:33)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x632: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x630: RegWrite
+  x643: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x811: RegRead
+    x638: RegRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: best_rising_0 (x538)
+Type: Reg[score]
+Src:  Deriv.scala:74:39
+Src:            val best_rising = Reg[score](score(0, -999.to[I32])).buffer
+---------------------------------------------------------------------
+Symbol:     x538 = RegNew(x537)
+Instances: 1
+  LUT5: 256.0
+  RAM32M: 64.0
+  DSPs: 256.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    2
+     Padding:  List()
+     Accum:    Fold
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x579 = RegRead(x538) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:87)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         1 [Type:WR]:
+           - Mux Port #0: 
+             x597 = RegWrite(x538,x594,Set(x595)) {}
+             if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])} (Deriv.scala:80:110)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         1 [Type:RD]:
+         M [Type:WR]:
+         M [Type:RD]:
+
+
+
+Control Tree: 
+x661: UnrolledForeach (-1) [Level: OuterControl, Loop: Looped, Schedule: Pipelined]
+  x589: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x579: RegRead
+  x600: Switch (-1) [Level: InnerControl, Loop: Single, Schedule: Fork]
+    x597: RegWrite
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x750
+Type: StreamIn[Bit]
+Src:  Deriv.scala:93:141
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram
+---------------------------------------------------------------------
+Symbol:     x750 = StreamInNew(BurstAckBus)
+Instances: 1
+  RAM32M: 1.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List(0)
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {0}: Cyclic: N=1, B=1, alpha=<1>, P=<1>
+     Ports: 
+         0 [Type:WR]:
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x772 = StreamInBankedRead(x750,ArrayBuffer(Set())) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram (Deriv.scala:93:141)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x774: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+  x772: StreamInBankedRead
+---------------------------------------------------------------------
+
+
+
+
+---------------------------------------------------------------------
+Name: x686
+Type: Reg[Fix[TRUE,_32,_0]]
+Src:  Deriv.scala:90:89
+Src:            if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
+---------------------------------------------------------------------
+Symbol:     x686 = RegNew(Const(0))
+Instances: 1
+  RAM32M: 16.0
+
+
+Instance Summary: 
+  #0: Banked
+     Resource: LUTs
+     Depth:    1
+     Padding:  List()
+     Accum:    None
+     Banks:    1 <Flat>
+       Dims {}: Cyclic: N=1, B=1, alpha=<>, P=<>
+     Ports: 
+         0 [Type:WR]:
+           - Mux Port #0: 
+             x689 = RegWrite(x686,x688,Set()) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:89)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+         0 [Type:RD]:
+           - Mux Port #0: 
+             x694 = RegRead(x686) {}
+             if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram (Deriv.scala:90:89)
+               Directly Banked: false
+               Port: <offset: 0, castgroup: (0), broadcast: (0)>
+
+
+
+
+Control Tree: 
+x720: SwitchCase (-1) [Level: OuterControl, Loop: Single, Schedule: Sequenced]
+  x690: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+    x689: RegWrite
+  x718: UnitPipe (-1) [Level: OuterControl, Loop: Single, Schedule: Streaming]
+    x702: UnitPipe (-1) [Level: InnerControl, Loop: Single, Schedule: Sequenced]
+      x694: RegRead
+---------------------------------------------------------------------
+
+
+
+

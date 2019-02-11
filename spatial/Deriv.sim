@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd gen/Deriv
+bash run.sh "$@"
