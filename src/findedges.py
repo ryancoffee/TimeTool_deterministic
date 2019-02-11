@@ -96,7 +96,7 @@ def main():
     np.savetxt(filename,matderiv_sharp.toarray(),fmt='%.4f')
     #np.savetxt(filename,matderiv_sharp,fmt='%.4f')
 
-    calibfilename = './data_fs/extern/chirp-2000_interferedelay1650_ncalibdelays16_interference.calibration'
+    calibfilename = './data_fs/extern/chirp-2000_interferedelay1650_photonen9.5_ncalibdelays8192_netalon0_interference.calibration'
     calibmat = np.loadtxt(calibfilename)
     calibmat_deriv = execute_matderivative(calibmat,matderiv_sharp) * np.abs(execute_matderivative(calibmat,matderiv_soft))
     calibmat_deriv_p = np.copy(calibmat_deriv*(calibmat_deriv>0))

@@ -29,6 +29,26 @@ object Helpers {
     d2
   }
 
+  def build_reference(filename: String): Unit = {
+    import sys.process._
+    // s"python3 src/findedges.py $filename" !
+  }
+
+  def parse_reference(filename: String): Seq[Seq[Int]] = {
+    import sys.process._
+    s"echo HI" !
+    
+    s"echo HI" !
+    
+    s"echo HI" !
+    
+    s"echo HI" !
+    
+    s"echo HI" !
+    
+    Seq(Seq())
+  }
+
 }
 
 import spatial.dsl._
@@ -41,6 +61,11 @@ import spatial.dsl._
   val deriv_window = 20
   @struct case class score(idx: Int, v: I32)
   def main(args: Array[String]): Unit = {
+
+    // Get reference edges
+    val ref_file = "../data_fs/reference/chirp-2000_interferedelay1650_photonen9.5_ncalibdelays8192_netalon0_interference.calibration"
+    Helpers.build_reference(ref_file)
+    Helpers.parse_reference(ref_file)
 
     // Get hard/soft derivative kernels
     val sharp_kernel = Helpers.build_derivkernel(deriv_window/8, deriv_window)

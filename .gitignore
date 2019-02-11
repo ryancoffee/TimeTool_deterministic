@@ -14,9 +14,9 @@ data_container/processed/*.diff
 .nfs00*
 *.swp
 data_container/raw/refsub/*.dat*
+data_container
 data_fs
 nothing
-data_container/*
 spatial/out*
 spatial/gen
 spatial/target
