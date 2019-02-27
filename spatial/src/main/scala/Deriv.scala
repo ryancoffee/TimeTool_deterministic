@@ -31,21 +31,16 @@ object Helpers {
 
   def build_reference(filename: String): Unit = {
     import sys.process._
-    // s"python3 src/findedges.py $filename" !
+    val filename = "cat ../src/findedges.py | grep \"calibfile =\" | sed \"s/calibfile = //g\"" !!
+
+    println(s"Calib file is $filename")
+    "python3 ../src/findedges.py" !
   }
 
   def parse_reference(filename: String): Seq[Seq[Int]] = {
     import sys.process._
     s"echo HI" !
-    
-    s"echo HI" !
-    
-    s"echo HI" !
-    
-    s"echo HI" !
-    
-    s"echo HI" !
-    
+
     Seq(Seq())
   }
 
@@ -64,7 +59,7 @@ import spatial.dsl._
 
     // Get reference edges
     val ref_file = "../data_fs/reference/chirp-2000_interferedelay1650_photonen9.5_ncalibdelays8192_netalon0_interference.calibration"
-    Helpers.build_reference(ref_file)
+    // Helpers.build_reference(ref_file)
     Helpers.parse_reference(ref_file)
 
     // Get hard/soft derivative kernels
@@ -86,25 +81,24 @@ import spatial.dsl._
     val output_falling_dram = DRAM[score](ROWS_TODO)
 
     Accel{
-      Foreach(ROWS_TODO by 1){r => 
+      Stream.Foreach(ROWS_TODO by 1 par 16){r => 
         val input_fifo = FIFO[I16](colTileSize)
-        val rising = FIFO[score](4)//(score(0,-999.to[I32]))
-        val falling = FIFO[score](4)//(score(0,999.to[I32]))
+        val rising = FIFO[score](2)
+        val falling = FIFO[score](2)
 
         // Stage 1: Load
         input_fifo load input_dram(r, 0::COLS)
 
-        // Stage 2: Process
-        Foreach(COLS by 1){c => 
+        // Stage 2: Process (Force II = 1 to squeeze sr write and sr read into one cycle)
+        Pipe.II(1).Foreach(COLS by 1){c => 
           val best_rising = Reg[score](score(0, -999.to[I32])).buffer
           val best_falling = Reg[score](score(0, -999.to[I32])).buffer
           val sr = RegFile[I16](deriv_window)
-          val sharp_lut = LUT[T](deriv_window)(sharp_kernel.map(_.to[T]):_*)
           sr <<= input_fifo.deq()
-          val t = Reduce(Reg[T])(deriv_window by 1){i => sr(i).to[T] * sharp_lut(i)}{_+_}
-          if (c == deriv_window || (c > deriv_window && t.value.to[I32] > best_rising.value.v)) {best_rising := score(c,t.value.to[I32])}
+          val t = List.tabulate(deriv_window){i => sharp_kernel(i).to[T] * sr(i).to[T]}.reduceTree{_+_}
+          if (c == deriv_window || (c > deriv_window && t.to[I32] > best_rising.value.v)) {best_rising := score(c,t.to[I32])}
+          if (c == deriv_window || (c > deriv_window && t.to[I32] < best_falling.value.v)) {best_falling := score(c,t.to[I32])}
           if (c == COLS-1) rising.enq(best_rising.value)
-          if (c == deriv_window || (c > deriv_window && t.value.to[I32] < best_falling.value.v)) {best_falling := score(c,t.value.to[I32])}
           if (c == COLS-1) falling.enq(best_falling.value)
         }
 
