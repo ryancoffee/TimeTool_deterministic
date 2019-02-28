@@ -53,7 +53,7 @@ import spatial.dsl._
   type T = FixPt[TRUE, _16, _16]
   val colTileSize = 64
   val rowTileSize = 128
-  val deriv_window = 20
+  val deriv_window = 40
   @struct case class score(idx: Int, v: I32)
   def main(args: Array[String]): Unit = {
 
@@ -64,6 +64,7 @@ import spatial.dsl._
 
     // Get hard/soft derivative kernels
     val sharp_kernel = Helpers.build_derivkernel(deriv_window/8, deriv_window)
+    println(r"""Kernel: ${sharp_kernel.mkString("\t")}""")
 
     // Get input data
     val input_data = loadCSV2D[I16](sys.env("DATA_FS") + "/processed/xppc00117_r136_refsub_ipm4_del3.out", " ", "\n")
@@ -80,11 +81,17 @@ import spatial.dsl._
     val output_rising_dram = DRAM[score](ROWS_TODO)
     val output_falling_dram = DRAM[score](ROWS_TODO)
 
+    // DEBUG
+    val deriv = DRAM[T](COLS)
+
     Accel{
-      Stream.Foreach(ROWS_TODO by 1 par 16){r => 
+      Stream.Foreach(ROWS_TODO by 1 par 1){r => 
         val input_fifo = FIFO[I16](colTileSize)
         val rising = FIFO[score](2)
         val falling = FIFO[score](2)
+
+        // DEBUG
+        val deriv_fifo = FIFO[T](32)
 
         // Stage 1: Load
         input_fifo load input_dram(r, 0::COLS)
@@ -100,10 +107,15 @@ import spatial.dsl._
           if (c == deriv_window || (c > deriv_window && t.to[I32] < best_falling.value.v)) {best_falling := score(c,t.to[I32])}
           if (c == COLS-1) rising.enq(best_rising.value)
           if (c == COLS-1) falling.enq(best_falling.value)
+
+          // DEBUG
+          if (r == ROWS_TODO-1) deriv_fifo.enq(t)
         }
 
         // Stage 3: Store
         Pipe{
+          // DEBUG
+          if (r == ROWS_TODO-1) deriv store deriv_fifo
           val best_rising_sram = SRAM[score](rowTileSize)
           best_rising_sram(r % rowTileSize) = rising.deq()
           if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
@@ -118,6 +130,10 @@ import spatial.dsl._
     printArray(result_rising_dram, "Rising:")
     val result_falling_dram = getMem(output_falling_dram)
     printArray(result_falling_dram, "Falling:")
+
+    // DEBUG
+    printArray(Array.tabulate(input_data.cols){i => input_data(args(0).to[Int]-1, i)}, r"Row ${args(0)}")
+    printArray(getMem(deriv), r"Deriv ${args(0)}")
 
   }
 }
