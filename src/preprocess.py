@@ -39,16 +39,19 @@ num = 0.0;
 w_over=5
 
 ratio = .1; # how to accumulate a rolling average for referencing
-runstrs = ['136','131','137','138'] # ['93']#,'94','97']#'21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+#runstrs = ['136','131','137','138'] # ['93']#,'94','97']#'21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
+runstrs = [19] #['136','131','137','138'] # ['93']#,'94','97']#'21','32']#'15']#'136','137','138']#'119','74','77','76','75','84'];#['15'];#,'13','14','15','9','10','9','10']; # 
 vwins = [(575,585),(619,625),(583,592),(583,592)] # [(480,500)]*len(runstrs)#(575,585),(570,580),(580,590)]#,(480,500),(480,500),(480,500),(480,500)]; #,(440,450),(440,450),(577,587),(577,587),(577,587),(577,587)]; # this is the integration window for the stripe projection
 samplerates = [1000]*len(runstrs);
 printsamples = [False]*len(runstrs)#,True,True,True,True,False,False); # tend to use this to briefly print a smaple image to discover the vwin needed (see below)
 subrefs = [False]*len(runstrs)#,True,True,True,True,True,False,False);
-delayscales = [1.e12]*len(runstrs) #[1.e3]*len(runstrs)#[1.e12]*len(runstrs)
+delayscales = [1.e3]*len(runstrs) #[1.e12]*len(runstrs) #[1.e3]*len(runstrs)#[1.e12]*len(runstrs)
 attens = [1.]*len(runstrs)#[1.0,0.007,0.06,0.04,0.98]# in microjoules
-expstrs = [str('xppc00117')]*len(runstrs)
-#expstrs = [str('amox28216')]*len(runstrs) #,str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
-dets = ['opal_1']*len(runstrs) #['OPAL1']*len(runstrs)#,'opal_1','OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
+#expstrs = [str('xppc00117')]*len(runstrs)
+expstrs = [str('amo11816')]*len(runstrs) #[str('amox28216')]*len(runstrs) #,str('amox28216'),str('amox28216'),str('amox28216'),str('amox28216')];#str('xcsx29616'),str('xcsx29616')];#str('amox28216');#str('amo11816');
+#dets = ['opal_1']*len(runstrs) #['OPAL1']*len(runstrs)#,'opal_1','OPAL1','OPAL1','OPAL1','OPAL1','OPAL1'];#'opal_usr1','opal_usr1']
+#dets = ['opal_1']*len(runstrs) # For xppc00117
+dets = ['OPAL1']*len(runstrs) # For amo11816
 
 nsamples = 1024;
 
@@ -62,7 +65,7 @@ for i in range(len(runstrs)):
 	ngoodshots = int(0);
 	printsample = printsamples[i];
 	subref = subrefs[i];
-	dsourcestr = 'exp=' + expstr + ':run=' + runstr + ':smd';
+	dsourcestr = 'exp={}:run={}:smd'.format(expstr,runstr);
 	#dsourcestr = 'exp=' + expstr + ':run=' + runstr ;
 	if subref:
 		runstr += "_refsub";
@@ -74,10 +77,13 @@ for i in range(len(runstrs)):
 	EBdet = psana.Detector('EBeam'); #This I hope is the BLD data
 	evr = psana.Detector('NoDetector.0:Evr.0');
 	cd = psana.Detector('ControlData');
-	#if regexp.search('^.*(xpp).*',runstr):
-	ipm1 = psana.Detector('HX2-SB1-BMMON');
-	ipm2 = psana.Detector('XPP-SB2-BMMON');
-	ipm3 = psana.Detector('XPP-SB3-BMMON');
+	runipms = bool(False)
+	if regexp.search('^.*(xpp).*',runstr):
+		runipms = True
+	if runipms:
+		ipm1 = psana.Detector('HX2-SB1-BMMON');
+		ipm2 = psana.Detector('XPP-SB2-BMMON');
+		ipm3 = psana.Detector('XPP-SB3-BMMON');
 
 	y_init = 0;
 	y_final = 0;
@@ -95,10 +101,11 @@ for i in range(len(runstrs)):
 	n_gd_vals = 6;
 	gd_data = np.zeros(n_gd_vals,dtype=float);
 	G = np.zeros((0,gd_data.shape[0]),dtype=float);
-	ipm_data_hdr = '';
-	n_ipm_vals = 3;
-	ipm_data = np.zeros(n_ipm_vals,dtype=float);
-	I = np.zeros((0,ipm_data.shape[0]),dtype=float);
+	if runipms:
+		ipm_data_hdr = '';
+		n_ipm_vals = 3;
+		ipm_data = np.zeros(n_ipm_vals,dtype=float);
+		I = np.zeros((0,ipm_data.shape[0]),dtype=float);
 	d_data_hdr = '';
 	d_data = np.zeros(2,dtype=float);#+ipm_data.shape[0],dtype=float);
 	D = np.zeros((0,d_data.shape[0]),dtype=float);
@@ -199,11 +206,12 @@ for i in range(len(runstrs)):
 							gd_data = np.zeros(n_gd_vals,dtype=float)
 						
 
-						ipm_data_hdr = 'ipm1\tipm2\tipm3';
-						if ((ipm1Results is not None) and (ipm2Results is not None) and (ipm3Results is not None)):
-							ipm_data = (ipm1Results.TotalIntensity(), ipm2Results.TotalIntensity(),ipm3Results.TotalIntensity());
-						else:
-							ipm_data = np.zeros(n_ipm_vals,dtype=float);
+						if runipms:
+							ipm_data_hdr = 'ipm1\tipm2\tipm3';
+							if ((ipm1Results is not None) and (ipm2Results is not None) and (ipm3Results is not None)):
+								ipm_data = (ipm1Results.TotalIntensity(), ipm2Results.TotalIntensity(),ipm3Results.TotalIntensity());
+							else:
+								ipm_data = np.zeros(n_ipm_vals,dtype=float);
 
 
 						d_data_hdr = 'delay\ttimsChoice\tourChoice\trms\tdelay\tattenuation\tgd_11\t12\t21\t22\t63\t64...\tipm1\tipm2 data'
@@ -213,7 +221,8 @@ for i in range(len(runstrs)):
 						D = np.row_stack((D,d_data));
 						G = np.row_stack((G,gd_data));
 						E = np.row_stack((E,eb_data));
-						I = np.row_stack((I,ipm_data));
+						if runipms:
+							I = np.row_stack((I,ipm_data));
 
 			if not nstep%2:
 				filename="%s/%s_r%s_%i_%i_matrix.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
@@ -227,8 +236,9 @@ for i in range(len(runstrs)):
 				np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr);
 				filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
 				np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr);
-				filename=dirstr + expstr + '_r' + runstr + '_ipm.dat';
-				np.savetxt(filename,I,fmt='%.6e',header=ipm_data_hdr);
+				if runipms:
+					filename=dirstr + expstr + '_r' + runstr + '_ipm.dat';
+					np.savetxt(filename,I,fmt='%.6e',header=ipm_data_hdr);
 	#for plot
 	y_dim = int(np.shape(R)[0]);
 	x_dim = int(np.shape(R)[1]);
@@ -246,8 +256,9 @@ for i in range(len(runstrs)):
 	np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
 	np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr);
-	#filename=dirstr + expstr + '_r' + runstr + '_ipm.dat';
-	#np.savetxt(filename,I,fmt='%.6e',header=ipm_data_hdr);
+	if runipms:
+		filename=dirstr + expstr + '_r' + runstr + '_ipm.dat';
+		np.savetxt(filename,I,fmt='%.6e',header=ipm_data_hdr);
 	filename=dirstr + expstr + '_r' + runstr + '_wavelengths.dat';
 	np.savetxt(filename,lam,fmt='%.6e');
 	print('Done saving for run ',runstr);
