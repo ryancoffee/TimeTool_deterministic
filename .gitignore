@@ -1,3 +1,5 @@
+figs/*.avi
+figs/2dTimeTool_frames_new/*
 data_container/raw/*dat*
 nohup*
 *.log
