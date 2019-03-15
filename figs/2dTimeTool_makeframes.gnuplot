@@ -173,25 +173,25 @@ set yrange [0:1024]
 set log cb
 set cbrange [1:100]
 unset colorbox
-filelist = system("ls ./data_fs/raw/amox28216_r94_step*0_image*.dat")
+filelist = system("ls ./data_fs/raw/amox28216_r93_step[1-9][0-9]_image*.dat.fft")
 outdir = './figs/2dTimeTool_frames_new/'
 unset xtics
 unset ytics
 i=-1
 do for [filename in filelist]{
 	i = i + 1
-	outname = sprintf('%simage%04i.png',outdir,i)
+	outname = sprintf('%s%simage%04i.fft.png',outdir,'amox28216_r93_',i)
 	print(outname)
 	set view map
 	set term png size 800,800
 	set output outname
-	splot filename mat 
+	splot filename mat u 1:2:(($3/1e3)**2)
 }
 
 # Create movie with mencoder
 ENCODER = system('which mencoder');
 if (strlen(ENCODER)==0) print '=== mencoder not found ==='; exit
-CMD = 'mencoder mf://figs/2dTimeTool_frames_new/image*.png -mf fps=10:type=png -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o ./figs/movie_2dTimeTool.avi'
+CMD = 'mencoder mf://figs/2dTimeTool_frames_new/amox28216_r93_image*.fft.png -mf fps=10:type=png -ovc lavc -lavcopts vcodec=mpeg4:mbd=2:trell -oac copy -o ./figs/movie_2dTimeTool_amox28216_r93.fft.avi'
 system(CMD)
 
 #set yrange [0:4200]
