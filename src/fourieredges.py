@@ -47,9 +47,11 @@ def edgedetect(mat):
     matFFT_cpy = overfilter(matFFT_cpy)
     mat_back = ifft(matFFT).real * np.abs(ifft(matFFT_cpy).real)
     maxinds = np.argmax(mat_back,axis=1)
+    print(maxinds)
     mininds = np.argmin(mat_back,axis=1)
     rows=np.arange(len(maxinds))
-    (maxvals, minvals) = (mat_back[maxinds,rows].astype(int) , mat_back[mininds,rows].astype(int))
+    (maxvals, minvals) = (mat_back[rows,maxinds].astype(int) , mat_back[rows,mininds].astype(int))
+    #(maxvals, minvals) = (mat_back[maxinds,rows].astype(int) , mat_back[mininds,rows].astype(int))
     return (maxinds,mininds,maxvals/1000,minvals/1000)
 
 def main():
@@ -62,6 +64,8 @@ def main():
             filename = m.group(2)
     print('This data is {}\t{}'.format(dirname,filename))
     data = np.loadtxt('{}{}'.format(dirname,filename),dtype=float)
+    if data.shape[0] == 1024:
+        data = data.T
     print(data.shape)
     (maxinds,mininds,maxvals,minvals) = edgedetect(data)
     distance = np.abs(1.1*maxinds.astype(float)+105.-mininds.astype(float))
