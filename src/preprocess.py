@@ -31,7 +31,8 @@ def weinerfilter(cmat,w=20):
 def takeasref(ec,ipm):
 	return (162 in ec or ipm.TotalIntensity()<100)
 
-dirstr = './data_fs/raw/'
+#dirstr = './data_fs/raw/'
+dirstr = './data_scratch/raw/'
 skipshots = 1;
 skipsteps = 1;
 num = 0.0;
@@ -129,11 +130,6 @@ for i in range(len(runstrs)):
 			print('checking step ',nstep);
 			if nstep%skipsteps==0:
 				pvList = cd().pvControls();
-				'''
-				ft_abs = np.zeros((1,nsamples),dtype=float);
-				ft_arg = np.zeros((1,nsamples),dtype=float);
-				'''
-
 				for pv in pvList:
 					if y_init == 0:
 						y_init = pv.value()
@@ -157,7 +153,7 @@ for i in range(len(runstrs)):
 						continue;
 					if not nevent%skipshots:
 						if (printsample and not nevent%samplerates[i]):
-							print("printing image %i" % nevent);
+							print('printing image {}'.format(nevent));
 							img = det.image(evt);
 							print('image shape = {}'.format(img.shape))
 							if (img is None):
@@ -166,19 +162,8 @@ for i in range(len(runstrs)):
 								continue;
 							if subref:
 								img -= reference_img
-							filename=dirstr + expstr + '_r' + runstr + '_step' + str(nstep) + '_image' + str(nevent) + '.dat';
+							filename='{}{}_r{}_step{}_image{}.dat'.format(dirstr, expstr, runstr, nstep, nevent);
 							np.savetxt(filename,img,fmt='%i');
-							'''
-							imgFFT = np.fft.fft(img,axis=1)
-							imgFFT = weinerfilter(imgFFT)
-							overfilterFFT = weinerfilter(imgFFT,w_over)
-							imgback = np.real(np.fft.ifft(imgFFT,axis=1))
-							overimgback = np.abs(np.fft.ifft(overfilterFFT,axis=1))
-							filename=dirstr + expstr + '_r' + runstr + '_step' + str(nstep) + '_image' + str(nevent) + '.dat.fft';
-							np.savetxt(filename,imgback,fmt='%i');
-							filename=dirstr + expstr + '_r' + runstr + '_step' + str(nstep) + '_image' + str(nevent) + '.dat.overfft';
-							np.savetxt(filename,1e-3*(imgback*overimgback),fmt='%i');
-							'''
 						lineout = np.zeros(nsamples,dtype=float);
 						#lineoutFT = np.zeros(nsamples,dtype=complex);
 						ebResults = EBdet.get(evt);
@@ -234,31 +219,26 @@ for i in range(len(runstrs)):
 							I = np.row_stack((I,ipm_data));
 
 			if not nstep%2:
-				filename="%s/%s_r%s_%i_%i_matrix.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
+				filename='{}{}_r{}_{}_{}_matrix.dat'.format(dirstr,expstr,runstr,vwin[0],vwin[1]);
 				np.savetxt(filename,R,fmt='%i');
-				#filename="%s/%s_r%s_%i_%i_matrix_back.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
-				#np.savetxt(filename,R_back.T,fmt='%i');
-				d_data_fullhdr = d_data_hdr + '\tgood %i\t total %i' % (ngoodshots,nmidshots);
-				filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
+				d_data_fullhdr = '{}\tgood {}\t total {}'.format(d_data_hdr,ngoodshots,nmidshots);
+				filename='{}{}_r{}_delays.dat'.format(dirstr, expstr, runstr)
 				np.savetxt(filename,D,fmt='%.6e',header=d_data_fullhdr);
-				filename=dirstr + expstr + '_r' + runstr + '_eb.dat';
+				filename='{}{}_r{}_eb.dat'.format(dirstr, expstr, runstr)
 				np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr);
-				filename=dirstr + expstr + '_r' + runstr + '_gd.dat';
+				filename='{}{}_r{}_gd.dat'.format(dirstr, expstr, runstr)
 				np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr);
 				if runipms:
-					filename=dirstr + expstr + '_r' + runstr + '_ipm.dat';
+					filename='{}{}_r{}_ipm.dat'.format(dirstr, expstr, runstr)
 					np.savetxt(filename,I,fmt='%.6e',header=ipm_data_hdr);
 	#for plot
 	y_dim = int(np.shape(R)[0]);
 	x_dim = int(np.shape(R)[1]);
 	lam = i2lam(np.arange(x_dim,dtype=float));
 
-	print('\n\n\t\tWatch out!  No longer transposing ouput')
 	filename="%s/%s_r%s_%i_%i_matrix.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
 	np.savetxt(filename,R,fmt='%i');
-	#filename="%s/%s_r%s_%i_%i_matrix_back.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1]);
-	#np.savetxt(filename,R_back,fmt='%i');
-	d_data_fullhdr = d_data_hdr + '\tgood %i\t total %i' % (ngoodshots,nmidshots);
+	d_data_fullhdr = '{}\tgood {}\t total {}'.format(d_data_hdr,ngoodshots,nmidshots);
 	filename=dirstr + expstr + '_r' + runstr + '_delays.dat';
 	np.savetxt(filename,D,fmt='%.6e',header=d_data_fullhdr);
 	filename=dirstr + expstr + '_r' + runstr + '_eb.dat';
