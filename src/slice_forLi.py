@@ -25,7 +25,7 @@ def main():
     outputdir = './data_fs/processed/'
 
     vwin = (575,585) #(610,640)
-    runstr = '134_refsub'
+    runstr = '136'
     expstr = str('xppc00117')
 
     nbins_ipm = 4
