@@ -25,26 +25,30 @@ def main():
     outputdir = './data_fs/processed/'
 
     vwin = (575,585) #(610,640)
-    runstr = '136'
+    runstr = '134_refsub'
     expstr = str('xppc00117')
 
-    nbins_ipm = 4
+    nbins_ipm = 6
     if len(sys.argv) > 1:
-        nbins_ipm = sys.argv[2]
-    ipmbins = np.exp(np.linspace(math.log(1e3),math.log(3e4),nbins_ipm))
-    print(ipmbins)
-    
+        nbins_ipm = sys.argv[1]
+    ipmbins = np.exp(np.linspace(math.log(1e3),math.log(3e4),nbins_ipm)).astype(int)
     ipmdata = load_ipmdata(datadir,expstr,runstr)
     ipmhist,ipmedges = np.histogram(ipmdata[:,1],bins=ipmbins)
-    print(ipmhist)
-    ipmindices = np.digitize(ipmdata[:,1],ipmedges,right=True)
+    ipmindices = np.digitize(ipmdata[:,1],ipmbins)
     delaydata = load_delaydata(datadir,expstr,runstr)
     matdata = load_matdata(datadir,expstr,runstr,vwin[0],vwin[1])
     print('matdata = {}\tipmdata.shape = {}'.format(matdata.shape,ipmdata.shape))
-    for thisipm in range(len(ipmedges)):
+    for thisipm in range(len(ipmbins)+1):
         sliceinds = [i for i,ipm in enumerate(ipmindices) if ipm==thisipm]
+        if thisipm ==0:
+            headstr = '#{}\n#{}\n#{}\t{} .. {}'.format(ipmbins,ipmhist,'not counted','zero',ipmbins[thisipm])
+        else:
+            if thisipm == len(ipmbins):
+                headstr = '#{}\n#{}\n#{}\t{} .. {}'.format(ipmbins,ipmhist,'not counted',ipmbins[thisipm-1],'inf')
+            else:
+                headstr = '#{}\n#{}\n#{}\t{} .. {}'.format(ipmbins,ipmhist,ipmhist[thisipm-1],ipmbins[thisipm-1],ipmbins[thisipm])
         ofile = '{}{}_r{}_ipm{}.out'.format(outputdir,expstr,runstr,thisipm)
-        np.savetxt(ofile,matdata[sliceinds[:-1],:],fmt='%.3e')
+        np.savetxt(ofile,matdata[sliceinds[:-1],:],fmt='%.3e',header=headstr)
     
 
 if __name__ == '__main__':

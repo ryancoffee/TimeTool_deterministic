@@ -1,0 +1,2 @@
+python3.5 src/slice_ipms.py 10
+python3.5 src/fourieredges.py ./data_fs/processed/xppc00117_r136_ipm8.out

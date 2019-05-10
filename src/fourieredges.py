@@ -55,10 +55,12 @@ def edgedetect(mat):
     return (maxinds,mininds,maxvals/1000,minvals/1000)
 
 def main():
-    dirname = './data_fs/raw/'
-    filename = 'amo11816_r29_refsub_matrix.dat'
+    #dirname = './data_fs/raw/'
+    #filename = 'amo11816_r29_refsub_matrix.dat'
+    dirname = './data_fs/processed/'
+    filename = 'xppc0117_r136_ipm5.out'
     if len(sys.argv)>1:
-        m = regexp.search('^\s*(.*data_fs.*/)(.*.dat)$',str(sys.argv[1]))
+        m = regexp.search('^\s*(.*data_fs.*/)(\w+\.\w+)$',str(sys.argv[1]))
         if m:
             dirname = m.group(1)
             filename = m.group(2)
@@ -70,8 +72,8 @@ def main():
     (maxinds,mininds,maxvals,minvals) = edgedetect(data)
     distance = np.abs(1.1*maxinds.astype(float)+105.-mininds.astype(float))
     np.savetxt('{}{}.inds'.format(dirname,filename),np.column_stack((maxinds,mininds,maxvals,minvals,distance)),fmt='%i')
-    trustinds = [i for i,v in enumerate(distance) if np.power(float(v),int(-2))>.01]
-    print('{}% is {} rows'.format(len(trustinds)/len(distance),len(trustinds)))
+    #trustinds = [i for i,v in enumerate(distance) if np.power(float(v),int(-2))>.01]
+    #print('{}% is {} rows'.format(len(trustinds)/len(distance),len(trustinds)))
     return
 
 if __name__ == '__main__':
