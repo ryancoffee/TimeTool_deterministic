@@ -10,7 +10,7 @@
 #    	gnuplot home:     http://www.gnuplot.info
 #    	faq, bugs, etc:   type "help FAQ"
 #    	immediate help:   type "help"  (plot window: hit 'h')
-# set terminal x11 1 nopersist enhanced
+# set terminal x11 
 # set output
 unset clip points
 set clip one
@@ -57,7 +57,7 @@ set style histogram clustered gap 2 title textcolor lt -1
 unset object
 set style textbox transparent margins  1.0,  1.0 border  lt -1 linewidth  1.0
 set offsets 0, 0, 0, 0
-set pointsize 0.5
+set pointsize 1
 set pointintervalbox 1
 set encoding utf8
 unset polar
@@ -65,7 +65,8 @@ unset parametric
 unset decimalsign
 unset micro
 unset minussign
-set view map scale 1
+set view 60, 30, 1, 1
+set view azimuth 0
 set rgbmax 255
 set samples 100, 100
 set isosamples 10, 10
@@ -82,7 +83,7 @@ set cntrparam firstlinetype 0
 set cntrparam points 5
 set size ratio 0 1,1
 set origin 0,0
-set style data points
+set style data histeps
 set style function lines
 unset xzeroaxis
 unset yzeroaxis
@@ -120,24 +121,24 @@ set timestamp  font "" norotate
 set trange [ * : * ] noreverse nowriteback
 set urange [ * : * ] noreverse nowriteback
 set vrange [ * : * ] noreverse nowriteback
-set xlabel "rising edge position [pix]" 
+set xlabel "" 
 set xlabel  font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  font "" textcolor lt -1 norotate
-set xrange [ * : * ] noreverse writeback
-set x2range [ * : * ] noreverse writeback
-set ylabel "{/Symbol D}(rise-fall) [pix]" 
+set xrange [ -0.0554901 : 0.0583824 ] noreverse writeback
+set x2range [ -0.0572965 : 0.0551527 ] noreverse writeback
+set ylabel "" 
 set ylabel  font "" textcolor lt -1 rotate
 set y2label "" 
 set y2label  font "" textcolor lt -1 rotate
-set yrange [ * : * ] noreverse writeback
-set y2range [ * : * ] noreverse writeback
+set yrange [ -0.243346 : 158.236 ] noreverse writeback
+set y2range [ -0.228137 : 148.346 ] noreverse writeback
 set zlabel "" 
 set zlabel  font "" textcolor lt -1 norotate
 set zrange [ * : * ] noreverse writeback
 set cblabel "" 
 set cblabel  font "" textcolor lt -1 rotate
-set cbrange [ * : * ] noreverse writeback
+set cbrange [ -5.00000 : 5.00000 ] noreverse writeback
 set rlabel "" 
 set rlabel  font "" textcolor lt -1 norotate
 set rrange [ * : * ] noreverse writeback
@@ -162,37 +163,35 @@ set loadpath
 set fontpath 
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
-f(x)=a+b*(x-x0)+c*(x-x0)**2+d*(x-x0)**3
+file(x) = sprintf('./data_fs/processed/xppc00117_r134_refsub_ipm%i.out.goodinds',x)
+f(x) = a+b*(x-x0)+c*(x-x0)**2+d*(x-x0)**3
+g(x)=aa+bb*(x-x0)+cc*(x-x0)**2
+errfile(x)= sprintf('data_fs/processed/xppc00117_r134_refsub_ipm%i.pserrhist',x)
 GNUTERM = "x11"
-x0 = 425.
-a = -241.821 #        +/- 0.1389       (0.05745%)
-b = -0.331548 #       +/- 0.001348     (0.4066%)
-c = -0.000341439 #    +/- 4.462e-06    (1.307%)
-d = -5.70297e-07 #    +/- 2.197e-08    (3.852%)
-## Last datafile plotted: "./data_fs/processed/xppc00117_r134_refsub_ipm7.out.inds"
-set term png color enhanced size 1800,800
-set output './analysis/plotting.fitting.xppc00117_r134_refsub.png'
-set multiplot 
-set size .33,1
-set origin 0,0
-set bmargin screen .1
-set tmargin screen .95
-set xrange [-10:1034]
-set key top left
-plot f(x) lw 2 lc -1 title 'fit curve',\
-	'./data_fs/processed/xppc00117_r134_refsub_ipm7.out.inds' u 1:($1-$2) title 'low inten.',\
-	'./data_fs/processed/xppc00117_r134_refsub_ipm8.out.inds' u 1:($1-$2) title '',\
-	'./data_fs/processed/xppc00117_r134_refsub_ipm9.out.inds' u 1:($1-$2) title '' ,\
-	'./data_fs/processed/xppc00117_r134_refsub_ipm10.out.inds' u 1:($1-$2) title 'high inten.'
-set origin .33,0
-set yrange [-400:-100]
-set key top right
-plot f(x) lw 2 lc -1 title 'fit curve', './data_fs/processed/xppc00117_r134_refsub_ipm8.out.goodinds' u 1:($1-$2) lc -1 title 'goodinds only'
-set origin .66,0
-set yrange [-10:10]
-set ylabel "{/Symbol D}(rise-fall) - fit [pix]" 
-plot	'./data_fs/processed/xppc00117_r134_refsub_ipm8.out.goodinds' u 1:(($1-$2)-f($1)) lc -1 notitle 'goodinds only',\
-	'./data_fs/processed/xppc00117_r134_refsub_ipm9.out.goodinds' u 1:(($1-$2)-f($1)) lc -1 notitle 'goodinds only',\
-	'./data_fs/processed/xppc00117_r134_refsub_ipm10.out.goodinds' u 1:(($1-$2)-f($1)) lc -1 notitle 'goodinds only'
-unset multiplot
+file = "./data_fs/processed/xppc00117_r134_refsub_ipm10.out.goodinds"
+x = 0.0
+a = -241.820965805726
+b = -0.33154841675682
+x0 = 425
+c = -0.000341438913039078
+FIT_CONVERGED = 1
+FIT_NDF = 582
+FIT_STDFIT = 0.488709731874925
+FIT_WSSR = 139.00325158103
+FIT_P = 1.0
+FIT_NITER = 4
+a_err = 0.138915444005756
+b_err = 0.00134811526098878
+c_err = 4.46168080175959e-06
+d = -5.70296731666138e-07
+d_err = 2.19660807058824e-08
+aa = -1.2
+bb = -0.0085
+cc = 8e-06
+aa_err = 0.0322852666953186
+bb_err = 0.000151024397269396
+cc_err = 7.51171327894524e-07
+## Last datafile plotted: "data_fs/processed/xppc00117_r134_refsub_ipm9.pserrhist"
+plot errfile(3),errfile(5),errfile(7),errfile(9)
+## fit g(x) file(8) u 1:6 via aa,bb,cc
 #    EOF

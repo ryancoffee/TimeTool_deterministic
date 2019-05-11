@@ -7,6 +7,42 @@ import subprocess
 import re as regexp
 from scipy import sparse #import coo_matrix
 
+def edgesagree(rise,fall):
+    y = float(rise-fall)
+    x = float(rise)
+    win = 100.
+    a = -245.
+    b = -0.37
+    x0 = 425
+    c = -0.0002
+    yhigh=win/2+a+b*(x-x0)+c*math.pow(float(x)-x0,int(2))
+    ylow=-win/2+a+b*(x-x0)+c*math.pow(float(x)-x0,int(2))
+    return (ylow <= y <= yhigh)
+
+def delta(x):
+    x0 = 425.
+    a = -241.821 #        +/- 0.1389       (0.05745%)
+    b = -0.331548 #       +/- 0.001348     (0.4066%)
+    c = -0.000341439 #    +/- 4.462e-06    (1.307%)
+    d = -5.70297e-07 #    +/- 2.197e-08    (3.852%)
+    return a+b*(x-x0)+c*math.pow(x-x0,int(2))+d*math.pow(x-x0,int(3))
+    
+def edgesagree3(rise,fall):
+    y = float(rise-fall)
+    x = float(rise)
+    win = 100.
+    ylow = -win/2+delta(rise)
+    yhigh = ylow + win
+    return (ylow <= y <= yhigh)
+
+def delaycalib(x):
+    a=-1.2
+    b=-8.5e-3
+    c=8e-6
+    x0=425
+    ps = a+b*(x-x0)+c*math.pow(x-x0,int(2))
+    dps = b+2.*c
+    return (ps,dps)
 
 def overfilter(cmat):
     #replot(log((1./x**2)*f(1e8,x,0,20)+exp(10)))
@@ -55,25 +91,42 @@ def edgedetect(mat):
     return (maxinds,mininds,maxvals/1000,minvals/1000)
 
 def main():
-    #dirname = './data_fs/raw/'
-    #filename = 'amo11816_r29_refsub_matrix.dat'
     dirname = './data_fs/processed/'
-    filename = 'xppc0117_r136_ipm5.out'
+    basename = 'xppc0117_r136_ipm5'
     if len(sys.argv)>1:
-        m = regexp.search('^\s*(.*data_fs.*/)(\w+\.\w+)$',str(sys.argv[1]))
+        m = regexp.search('^\s*(.*data_fs.*/)(\w+)\.\w+$',str(sys.argv[1]))
         if m:
             dirname = m.group(1)
-            filename = m.group(2)
-    print('This data is {}\t{}'.format(dirname,filename))
-    data = np.loadtxt('{}{}'.format(dirname,filename),dtype=float)
+            basename = m.group(2)
+    ipmname = '{}.out'.format(basename)
+    delaysname = '{}.del'.format(basename)
+    print('This data is {}\t{}'.format(dirname,ipmname))
+    data = np.loadtxt('{}{}'.format(dirname,ipmname),dtype=float)
+    delaydata = 1e9*np.loadtxt('{}{}'.format(dirname,delaysname),dtype=float)
     if data.shape[0] == 1024:
         data = data.T
     print(data.shape)
     (maxinds,mininds,maxvals,minvals) = edgedetect(data)
-    distance = np.abs(1.1*maxinds.astype(float)+105.-mininds.astype(float))
-    np.savetxt('{}{}.inds'.format(dirname,filename),np.column_stack((maxinds,mininds,maxvals,minvals,distance)),fmt='%i')
+    goodinds = [i for i,v in enumerate(maxinds) if edgesagree3(maxinds[i],mininds[i])]
+    errorlist = [delta(v) - (maxinds[i] - mininds[i]) for i,v in enumerate(maxinds)]
+    pserrorlist = []
+    for i,e in enumerate(errorlist):
+        (ps,dps)=delaycalib(maxinds[i])
+        pserrorlist.append(dps*e)
+    error = np.array(errorlist,dtype=float)
+    pserror = np.array(pserrorlist,dtype=float)
+    print(len(maxinds))
+    print(len(error))
+    np.savetxt('{}{}.inds'.format(dirname,basename),np.column_stack((maxinds,mininds,maxvals,minvals,delaydata,error,pserror)),fmt='%.3f')
+    np.savetxt('{}{}.goodinds'.format(dirname,basename),np.column_stack((maxinds[goodinds],mininds[goodinds],maxvals[goodinds],minvals[goodinds],delaydata[goodinds],error[goodinds],pserror[goodinds])),fmt='%.3f')
     #trustinds = [i for i,v in enumerate(distance) if np.power(float(v),int(-2))>.01]
     #print('{}% is {} rows'.format(len(trustinds)/len(distance),len(trustinds)))
+    psbins=np.linspace(-.2,.2,81)
+    h,b=np.histogram(pserror[goodinds],bins=psbins)
+    np.savetxt('{}{}.pserrhist'.format(dirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f')
+    psbins=np.linspace(-2,2,801)
+    h,b=np.histogram(pserror,bins=psbins)
+    np.savetxt('{}{}.pserrhistall'.format(dirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f')
     return
 
 if __name__ == '__main__':

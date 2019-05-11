@@ -49,6 +49,8 @@ def main():
                 headstr = '#{}\n#{}\n#{}\t{} .. {}'.format(ipmbins,ipmhist,ipmhist[thisipm-1],ipmbins[thisipm-1],ipmbins[thisipm])
         ofile = '{}{}_r{}_ipm{}.out'.format(outputdir,expstr,runstr,thisipm)
         np.savetxt(ofile,matdata[sliceinds[:-1],:],fmt='%.3e',header=headstr)
+        ofile = '{}{}_r{}_ipm{}.del'.format(outputdir,expstr,runstr,thisipm)
+        np.savetxt(ofile,delaydata[sliceinds[:-1]],fmt='%.3e',header=headstr)
     
 
 if __name__ == '__main__':
