@@ -45,19 +45,42 @@ Onde we use the gnereal trend, then we can update the portion of the fourieredge
 This allows for a better fit to the functional relationship.  
 
 ```python
+def delta(x):
+    x0 = 425.
+    a = -241.821 #        +/- 0.1389       (0.05745%)
+    b = -0.331548 #       +/- 0.001348     (0.4066%)
+    c = -0.000341439 #    +/- 4.462e-06    (1.307%)
+    d = -5.70297e-07 #    +/- 2.197e-08    (3.852%)
+    return a+b*(x-x0)+c*math.pow(x-x0,int(2))+d*math.pow(x-x0,int(3))
+    
 def edgesagree3(rise,fall):
-	y = float(rise-fall)
-	x = float(rise)
-	win = 100.
-	x0 = 425.
-	a = -241.821 #        +/- 0.1389       (0.05745%)
-	b = -0.331548 #       +/- 0.001348     (0.4066%)
-	c = -0.000341439 #    +/- 4.462e-06    (1.307%)
-	d = -5.70297e-07 #    +/- 2.197e-08    (3.852%)
-	yhigh=win/2+a+b*(x-x0)+c*math.pow(float(x)-x0,int(2))+d*math.pow(float(x)-x0,int(3))
-	ylow=-win/2+a+b*(x-x0)+c*math.pow(float(x)-x0,int(2))+d*math.pow(float(x)-x0,int(3))
+    y = float(rise-fall)
+    x = float(rise)
+    win = 100.
+    ylow = -win/2+delta(rise)
+    yhigh = ylow + win
+    return (ylow <= y <= yhigh)
 ```
 
 # Resolution  
 
 Next left to do is to convert these pixel units into time units by comparing the goodinds to the respective delays and getting the calibrations.  
+So I added delay output for the `src/slice_ipms.py` file and used that to plot delay versus rise index.
+This needed to be hand fit since the bi-modal timing made for two stripes.
+Doesn't hurt anyway since really we only need the derivative.
+The hand fit values for `xppc00117_r134` give the following:
+```python
+def delaycalib(x):
+    a=-1.2
+    b=-8.5e-3
+    c=8e-6
+    x0=425
+    ps = a+b*(x-x0)+c*math.pow(x-x0,int(2))
+    dps = b+2.*c
+    return (ps,dps)
+```
+where `x = rise`.
+
+since `delta` gives the difference `rise - fall` we can use this to get two delays from the traces, `delaycalib(rise)` and `delaycalib(fall+delta(rise))`.  
+
+
