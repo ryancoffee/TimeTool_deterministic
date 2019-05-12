@@ -3,11 +3,12 @@ import sys
 import numpy as np
 from numpy.fft import fft,ifft,fftfreq
 import math
+import statistics as stats
 import subprocess
 import re as regexp
 from scipy import sparse #import coo_matrix
 
-def edgesagree(rise,fall):
+def edgesagree(rise,fall,isamo=False):
     y = float(rise-fall)
     x = float(rise)
     win = 100.
@@ -15,9 +16,23 @@ def edgesagree(rise,fall):
     b = -0.37
     x0 = 425
     c = -0.0002
+    if isamo:
+        a = -222.
+        b = -0.342
+        c = -0.00015
+        win = 20
     yhigh=win/2+a+b*(x-x0)+c*math.pow(float(x)-x0,int(2))
     ylow=-win/2+a+b*(x-x0)+c*math.pow(float(x)-x0,int(2))
     return (ylow <= y <= yhigh)
+
+def delta_amo(x):
+    x0 = 425.
+    a = -220.78      #    +/- 0.01397      (0.006328%)
+    b = -0.331961    #    +/- 0.0001954    (0.05887%)
+    c = -0.000159796 #    +/- 8.612e-07    (0.5389%)
+    d = -2.47293e-07 #    +/- 7.633e-09    (3.086%)
+    return a+b*(x-x0)+c*math.pow(x-x0,int(2))+d*math.pow(x-x0,int(3))
+
 
 def delta(x):
     x0 = 425.
@@ -27,19 +42,33 @@ def delta(x):
     d = -5.70297e-07 #    +/- 2.197e-08    (3.852%)
     return a+b*(x-x0)+c*math.pow(x-x0,int(2))+d*math.pow(x-x0,int(3))
     
-def edgesagree3(rise,fall):
+def edgesagree3(rise,fall,isamo=False):
     y = float(rise-fall)
     x = float(rise)
     win = 100.
-    ylow = -win/2+delta(rise)
-    yhigh = ylow + win
+    if isamo:
+        win = 40
+        ylow = -win/2+delta_amo(rise)
+        yhigh = ylow + win
+    else:
+        ylow = -win/2+delta(rise)
+        yhigh = ylow + win
     return (ylow <= y <= yhigh)
+
+def delaycalib_amo(x):
+    a=-1.07568
+    b=5.80e-3
+    c=-4.0e-06
+    x0=425.
+    ps = a+b*(x-x0)+c*math.pow(x-x0,int(2))
+    dps = b+2.*c
+    return (ps,dps)
 
 def delaycalib(x):
     a=-1.2
     b=-8.5e-3
     c=8e-6
-    x0=425
+    x0=425.
     ps = a+b*(x-x0)+c*math.pow(x-x0,int(2))
     dps = b+2.*c
     return (ps,dps)
@@ -93,40 +122,70 @@ def edgedetect(mat):
 def main():
     dirname = './data_fs/processed/'
     basename = 'xppc0117_r136_ipm5'
-    if len(sys.argv)>1:
+    ipmname = '{}.out'.format(basename)
+    delaysname = '{}.del'.format(basename)
+    if len(sys.argv) == 2:
         m = regexp.search('^\s*(.*data_fs.*/)(\w+)\.\w+$',str(sys.argv[1]))
         if m:
             dirname = m.group(1)
             basename = m.group(2)
-    ipmname = '{}.out'.format(basename)
-    delaysname = '{}.del'.format(basename)
-    print('This data is {}\t{}'.format(dirname,ipmname))
+            ipmname = '{}.out'.format(basename)
+            delaysname = '{}.del'.format(basename)
+    if len(sys.argv)>2:
+        m = regexp.search('^\s*(.*data_fs.*/)((\w+)\.\w+)$',str(sys.argv[1]))
+        n = regexp.search('^\s*(.*data_fs.*/)(\w+\.\w+)$',str(sys.argv[2]))
+        if m and n:
+            dirname = m.group(1)
+            basename = m.group(3)
+            ipmname = m.group(2)
+            delaysname = n.group(2)
+
+    print('This data is {}{} and delayfile {}{}'.format(dirname,ipmname,dirname,delaysname))
+    scale = 1e9 if regexp.search('xpp',ipmname) else 1.
+    isamo = regexp.search('amo',ipmname)
+    m = regexp.search('^(.*data_fs/)raw/',dirname)
+    outdirname = dirname 
+    if m:
+        outdirname = '{}processed/'.format(m.group(1))
     data = np.loadtxt('{}{}'.format(dirname,ipmname),dtype=float)
-    delaydata = 1e9*np.loadtxt('{}{}'.format(dirname,delaysname),dtype=float)
+    delaydata = scale * np.loadtxt('{}{}'.format(dirname,delaysname),dtype=float)
     if data.shape[0] == 1024:
         data = data.T
     print(data.shape)
     (maxinds,mininds,maxvals,minvals) = edgedetect(data)
-    goodinds = [i for i,v in enumerate(maxinds) if edgesagree3(maxinds[i],mininds[i])]
-    errorlist = [delta(v) - (maxinds[i] - mininds[i]) for i,v in enumerate(maxinds)]
+    goodinds = [i for i,v in enumerate(maxinds) if edgesagree3(maxinds[i],mininds[i],isamo=isamo)]
+    if isamo:
+        errorlist = [delta_amo(v) - (maxinds[i] - mininds[i]) for i,v in enumerate(maxinds)]
+    else:
+        errorlist = [delta(v) - (maxinds[i] - mininds[i]) for i,v in enumerate(maxinds)]
     pserrorlist = []
     for i,e in enumerate(errorlist):
-        (ps,dps)=delaycalib(maxinds[i])
+        if isamo:
+            (ps,dps)=delaycalib_amo(maxinds[i])
+        else:
+            (ps,dps)=delaycalib(maxinds[i])
         pserrorlist.append(dps*e)
     error = np.array(errorlist,dtype=float)
     pserror = np.array(pserrorlist,dtype=float)
     print(len(maxinds))
     print(len(error))
-    np.savetxt('{}{}.inds'.format(dirname,basename),np.column_stack((maxinds,mininds,maxvals,minvals,delaydata,error,pserror)),fmt='%.3f')
-    np.savetxt('{}{}.goodinds'.format(dirname,basename),np.column_stack((maxinds[goodinds],mininds[goodinds],maxvals[goodinds],minvals[goodinds],delaydata[goodinds],error[goodinds],pserror[goodinds])),fmt='%.3f')
+    print('{}{}.inds'.format(outdirname,basename))
+    np.savetxt('{}{}.inds'.format(outdirname,basename),np.column_stack((maxinds,mininds,maxvals,minvals,delaydata,error,pserror)),fmt='%.3f')
+    np.savetxt('{}{}.goodinds'.format(outdirname,basename),np.column_stack((maxinds[goodinds],mininds[goodinds],maxvals[goodinds],minvals[goodinds],delaydata[goodinds],error[goodinds],pserror[goodinds])),fmt='%.3f')
     #trustinds = [i for i,v in enumerate(distance) if np.power(float(v),int(-2))>.01]
     #print('{}% is {} rows'.format(len(trustinds)/len(distance),len(trustinds)))
     psbins=np.linspace(-.2,.2,81)
     h,b=np.histogram(pserror[goodinds],bins=psbins)
-    np.savetxt('{}{}.pserrhist'.format(dirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f')
+    mu = stats.mean(pserror[goodinds])
+    std = stats.stdev(pserror[goodinds],mu)
+    headstr = 'mean {}\tstdev {}'.format(mu,std)
+    np.savetxt('{}{}.pserrhist'.format(outdirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f',header=headstr)
     psbins=np.linspace(-2,2,801)
     h,b=np.histogram(pserror,bins=psbins)
-    np.savetxt('{}{}.pserrhistall'.format(dirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f')
+    mu = stats.mean(pserror)
+    std = stats.stdev(pserror,mu)
+    headstr = 'mean {}\tstdev {}'.format(mu,std)
+    np.savetxt('{}{}.pserrhistall'.format(outdirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f',header=headstr)
     return
 
 if __name__ == '__main__':
