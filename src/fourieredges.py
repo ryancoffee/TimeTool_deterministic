@@ -145,9 +145,22 @@ def main():
     isamo = regexp.search('amo',ipmname)
     m = regexp.search('^(.*data_fs/)raw/',dirname)
     outdirname = dirname 
+    slicestring = ''
     if m:
         outdirname = '{}processed/'.format(m.group(1))
-    data = np.loadtxt('{}{}'.format(dirname,ipmname),dtype=float)
+
+    datafile = open('{}{}'.format(dirname,ipmname),'r')
+    if not isamo:
+        line = ''
+        for i in range(3):
+            line = datafile.readline()
+        print(line)
+        m = regexp.search('^# (.+)\\t(.+) \.\. (.+)$',line)
+        print(m)
+        if m:
+            slicestring = '{}\t{}\t{}'.format(m.group(1),m.group(2),m.group(3))
+        print(slicestring)
+    data = np.loadtxt(datafile,dtype=float)
     delaydata = scale * np.loadtxt('{}{}'.format(dirname,delaysname),dtype=float)
     if data.shape[0] == 1024:
         data = data.T
@@ -170,21 +183,21 @@ def main():
     print(len(maxinds))
     print(len(error))
     print('{}{}.inds'.format(outdirname,basename))
-    np.savetxt('{}{}.inds'.format(outdirname,basename),np.column_stack((maxinds,mininds,maxvals,minvals,delaydata,error,pserror)),fmt='%.3f')
-    np.savetxt('{}{}.goodinds'.format(outdirname,basename),np.column_stack((maxinds[goodinds],mininds[goodinds],maxvals[goodinds],minvals[goodinds],delaydata[goodinds],error[goodinds],pserror[goodinds])),fmt='%.3f')
+    np.savetxt('{}{}.inds'.format(outdirname,basename),np.column_stack((maxinds,mininds,maxvals,minvals,delaydata,error,pserror)),fmt='%.3f',header=slicestring)
+    np.savetxt('{}{}.goodinds'.format(outdirname,basename),np.column_stack((maxinds[goodinds],mininds[goodinds],maxvals[goodinds],minvals[goodinds],delaydata[goodinds],error[goodinds],pserror[goodinds])),fmt='%.3f',header=slicestring)
     #trustinds = [i for i,v in enumerate(distance) if np.power(float(v),int(-2))>.01]
     #print('{}% is {} rows'.format(len(trustinds)/len(distance),len(trustinds)))
     psbins=np.linspace(-.2,.2,81)
     h,b=np.histogram(pserror[goodinds],bins=psbins)
     mu = stats.mean(pserror[goodinds])
     std = stats.stdev(pserror[goodinds],mu)
-    headstr = 'mean {}\tstdev {}'.format(mu,std)
+    headstr = 'mean\tstdev\tcounts\tlowlim\thiglim\n{}\t{}\t{}'.format(mu,std,slicestring)
     np.savetxt('{}{}.pserrhist'.format(outdirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f',header=headstr)
     psbins=np.linspace(-2,2,801)
     h,b=np.histogram(pserror,bins=psbins)
     mu = stats.mean(pserror)
     std = stats.stdev(pserror,mu)
-    headstr = 'mean {}\tstdev {}'.format(mu,std)
+    headstr = 'mean\tstdev\tcounts\tlowlim\thiglim\n{}\t{}\t{}'.format(mu,std,slicestring)
     np.savetxt('{}{}.pserrhistall'.format(outdirname,basename),np.column_stack((b[:-1],h)),fmt='%.3f',header=headstr)
     return
 

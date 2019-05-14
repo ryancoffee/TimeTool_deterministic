@@ -25,7 +25,7 @@ def main():
     outputdir = './data_fs/processed/'
 
     vwin = (575,585) #(610,640)
-    runstr = '136_refsub'
+    runstr = '134_refsub'
     expstr = str('xppc00117')
 
     nbins_ipm = 6
@@ -40,15 +40,18 @@ def main():
     print('matdata = {}\tipmdata.shape = {}'.format(matdata.shape,ipmdata.shape))
     for thisipm in range(len(ipmbins)+1):
         sliceinds = [i for i,ipm in enumerate(ipmindices) if ipm==thisipm]
-        ipmbinsstr = np.array2string(ipmbins,max_line_width=2000)
-        ipmhiststr = np.array2string(ipmhist,max_line_width=2000) 
+        ipmbinsstr = ''
+        for v in ipmbins:
+            ipmbinsstr = ipmbinsstr + ' {}'.format(ipmbins)
+        for c in ipmhist:
+            ipmhiststr = ipmhiststr + ' {}'.format(ipmhist)
         if thisipm ==0:
             headstr = '{}\n{}\n{}\t{} .. {}'.format(ipmbinsstr,ipmhiststr,'not counted','zero',ipmbins[thisipm])
         else:
             if thisipm == len(ipmbins):
-                headstr = '{}\n{}\n{}\t{} .. {}'.format(ipmbinsstr,ipmhiststr,'not counted',ipmbins[thisipm-1],'inf')
+                headstr = '#{}\n#{}\n#{}\t{} .. {}'.format(ipmbinsstr,ipmhiststr,'not counted',ipmbins[thisipm-1],'inf')
             else:
-                headstr = '{}\n{}\n{}\t{} .. {}'.format(ipmbinsstr,ipmhiststr,ipmhist[thisipm-1],ipmbins[thisipm-1],ipmbins[thisipm])
+                headstr = '#{}\n#{}\n#{}\t{} .. {}'.format(ipmbinsstr,ipmhiststr,ipmhist[thisipm-1],ipmbins[thisipm-1],ipmbins[thisipm])
         ofile = '{}{}_r{}_ipm{}.out'.format(outputdir,expstr,runstr,thisipm)
         np.savetxt(ofile,matdata[sliceinds[:-1],:],fmt='%.3e',header=headstr)
         ofile = '{}{}_r{}_ipm{}.del'.format(outputdir,expstr,runstr,thisipm)
