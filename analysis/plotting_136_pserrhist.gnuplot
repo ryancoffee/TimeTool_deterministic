@@ -196,25 +196,25 @@ i=14
 fit g(x) errfile(i) u (1e3*$1):2 via a,x0,w
 set yrange [-.1*a:1.2*a]
 plot g(x) w lines lw 2 title sprintf('{/Symbol s} = %.1f',abs(w)),\
-	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, h%i",i)
+	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, 3-4 mJ/cm^2",i)
 set origin .5,0.5
 i=15
 fit g(x) errfile(i) u (1e3*$1):2 via a,x0,w
 set yrange [-.1*a:1.2*a]
 plot g(x) w lines lw 2 title sprintf('{/Symbol s} = %.1f',abs(w)),\
-	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, h%i",i)
+	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, 4-5 mJ/cm^2",i)
 set origin 0,0
 i=16
 fit g(x) errfile(i) u (1e3*$1):2 via a,x0,w
 set yrange [-.1*a:1.2*a]
 plot g(x) w lines lw 2 title sprintf('{/Symbol s} = %.1f',abs(w)),\
-	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, h%i",i)
+	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, 5-6 mJ/cm^2",i)
 set origin 0.5,0
 i=18
 fit g(x) errfile(i) u (1e3*$1):2 via a,x0,w
 set yrange [-.1*a:1.2*a]
 plot g(x) w lines lw 2 title sprintf('{/Symbol s} = %.1f',abs(w)),\
-	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, h%i",i)
+	errfile(i) u (1e3*$1):2 title sprintf("9.5 keV, 6-8 mJ/cm^2",i)
 unset multiplot
 
 set term png enhanced size 600,600
@@ -225,5 +225,5 @@ set origin 0,0
 set size 1,1
 fit g(x) 'data_fs/processed/amo11816_r29_refsub_matrix.pserrhist' u ($1*1e3):2 via a,x0,w
 plot g(x) w lines lw 2 title sprintf('{/Symbol s} = %.1f',abs(w)),\
-	'data_fs/processed/amo11816_r29_refsub_matrix.pserrhist' u ($1*1e3):2 lw 2 title "500 eV"
+	'data_fs/processed/amo11816_r29_refsub_matrix.pserrhist' u ($1*1e3):2 lw 2 title "500 eV, 25 mJ/cm^2"
 #    EOF
