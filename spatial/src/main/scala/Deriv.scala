@@ -39,7 +39,7 @@ object Helpers {
 
   def parse_reference(filename: String): Seq[Seq[Int]] = {
     import sys.process._
-    s"echo HI" !
+    s"echo TESTING SCALA METAPROGRAMMING" !
 
     Seq(Seq())
   }
@@ -52,7 +52,7 @@ import spatial.dsl._
 
   type T = FixPt[TRUE, _16, _16]
   val colTileSize = 64
-  val rowTileSize = 128
+  val rowTileSize = 16
   val deriv_window = 40
   @struct case class score(idx: Int, v: I32)
   def main(args: Array[String]): Unit = {
@@ -80,60 +80,108 @@ import spatial.dsl._
     setMem(input_dram, input_data)
     val output_rising_dram = DRAM[score](ROWS_TODO)
     val output_falling_dram = DRAM[score](ROWS_TODO)
+    val output_volume_dram = DRAM[U16](ROWS_TODO)
 
     // DEBUG
     val deriv = DRAM[T](COLS)
 
     Accel{
+      /*
+                                                acc after last rising update
+                                                                  _                    intensity_fifo
+                                           /------------>   |_|  ------------\           ________   
+                                          /      acc after last rising update - > -->   |_|_|_|_|     ----->      DRAM
+                                         /                   _               /
+                                        /--------------->   |_|  -----------/
+                                       /                                                                      
+                       input_fifo     /     sr                                                                  
+                        ________     /     _____                min idx/val            falling fifo
+       DRAM  ----->    |_|_|_|_|    --->  |_|_|_|     deriv       _                      ________                                          
+                                                  \     _     /  |_|            ---->   |_|_|_|_|     ----->      DRAM
+                                          kernel   >   |_|  <   max idx/val            rising fifo
+                                           _____  /           \     _                    ________                        
+                                          |_|_|_|                |_|            ---->   |_|_|_|_|     ----->      DRAM          
+                                                                                                      
+       \__________________/ \________________________________________________________________/ \____________________/                                                                                           
+             Stage 1                            Stage 2                                                Stage 3    
+                                                                                                     
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+      */
       Stream.Foreach(ROWS_TODO by 1 par 1){r => 
         val input_fifo = FIFO[I16](colTileSize)
-        val rising = FIFO[score](2)
-        val falling = FIFO[score](2)
+        val rising = FIFO[score](2*rowTileSize)
+        val falling = FIFO[score](2*rowTileSize)
+        val volume = FIFO[U16](2*rowTileSize)
+        val issue = FIFO[Int](2*rowTileSize)
 
-        // DEBUG
-        val deriv_fifo = FIFO[T](32)
+        // // DEBUG
+        // val deriv_fifo = FIFO[T](32)
 
         // Stage 1: Load
         input_fifo load input_dram(r, 0::COLS)
 
         // Stage 2: Process (Force II = 1 to squeeze sr write and sr read into one cycle)
         Pipe.II(1).Foreach(COLS by 1){c => 
-          val best_rising = Reg[score](score(0, -999.to[I32])).buffer
-          val best_falling = Reg[score](score(0, -999.to[I32])).buffer
+          val best_rising = Reg[score](score(0, -999.to[I32]))
+          val best_falling = Reg[score](score(0, -999.to[I32]))
+          val acc_after_rising = Reg[U16](0)
+          val acc_after_falling = Reg[U16](0)
           val sr = RegFile[I16](deriv_window)
-          sr <<= input_fifo.deq()
+          val next = input_fifo.deq()
+          sr <<= next
+          acc_after_rising :+= next.as[U16]
+          acc_after_falling :+= next.as[U16]
           val t = List.tabulate(deriv_window){i => sharp_kernel(i).to[T] * sr(i).to[T]}.reduceTree{_+_}
-          if (c == deriv_window || (c > deriv_window && t.to[I32] > best_rising.value.v)) {best_rising := score(c,t.to[I32])}
-          if (c == deriv_window || (c > deriv_window && t.to[I32] < best_falling.value.v)) {best_falling := score(c,t.to[I32])}
-          if (c == COLS-1) rising.enq(best_rising.value)
-          if (c == COLS-1) falling.enq(best_falling.value)
+          if (c == deriv_window || (c > deriv_window && t.to[I32] > best_rising.value.v)) {
+            acc_after_rising.reset()
+            best_rising := score(c,t.to[I32])
+          }
+          if (c == deriv_window || (c > deriv_window && t.to[I32] < best_falling.value.v)) {
+            acc_after_falling.reset()
+            best_falling := score(c,t.to[I32])
+          }
+          if (c == COLS-1) {
+            rising.enq(best_rising.value)
+            falling.enq(best_falling.value)
+            volume.enq(acc_after_rising - acc_after_falling)
+            issue.enq(mux(best_rising.value == score(-1,-1) || r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1, mux((r+1) % rowTileSize == 0, rowTileSize, r % rowTileSize + 1), 0)) // Random math to make sure retiming puts it later
+          } 
 
-          // DEBUG
-          if (r == ROWS_TODO-1) deriv_fifo.enq(t)
+          // // DEBUG
+          // if (r == ROWS_TODO-1) deriv_fifo.enq(t)
         }
 
         // Stage 3: Store
         Pipe{
-          // DEBUG
-          if (r == ROWS_TODO-1) deriv store deriv_fifo
-          val best_rising_sram = SRAM[score](rowTileSize)
-          best_rising_sram(r % rowTileSize) = rising.deq()
-          if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_rising_sram
-          val best_falling_sram = SRAM[score](rowTileSize)
-          best_falling_sram(r % rowTileSize) = falling.deq()
-          if (r == ROWS_TODO-1 || r % rowTileSize == rowTileSize-1) output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + rowTileSize) store best_falling_sram
+          val numel = issue.deq()
+          if (numel > 0) {
+            // // DEBUG
+            // deriv store deriv_fifo
+            // Store results
+            Pipe{output_rising_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + numel) store rising}
+            Pipe{output_falling_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + numel) store falling}
+            Pipe{output_volume_dram(r-(r%rowTileSize)::r-(r%rowTileSize) + numel) store volume}
+          }
         }
       }
     }
 
-    val result_rising_dram = getMem(output_rising_dram)
-    printArray(result_rising_dram, "Rising:")
-    val result_falling_dram = getMem(output_falling_dram)
-    printArray(result_falling_dram, "Falling:")
+    // // DEBUG
+    // println("Debug info:")
+    // printArray(Array.tabulate(input_data.cols){i => input_data(args(0).to[Int]-1, i)}, r"Row ${args(0)}")
+    // printArray(getMem(deriv), r"Deriv ${args(0)}")
 
-    // DEBUG
-    printArray(Array.tabulate(input_data.cols){i => input_data(args(0).to[Int]-1, i)}, r"Row ${args(0)}")
-    printArray(getMem(deriv), r"Deriv ${args(0)}")
+    val result_rising_dram = getMem(output_rising_dram)
+    val result_falling_dram = getMem(output_falling_dram)
+    val result_volume_dram = getMem(output_volume_dram)
+    println("Results:")
+    println("|  Rising Idx   |  Falling Idx  |     Volume      |   Rising V   |   Falling V   |")
+    for (i <- 0 until ROWS_TODO) {
+      println(r"|      ${result_rising_dram(i).idx}      |      ${result_falling_dram(i).idx}      |      ${result_volume_dram(i)}      |      ${result_rising_dram(i).v}      |      ${result_falling_dram(i).v}      |")
+    }
 
   }
 }
