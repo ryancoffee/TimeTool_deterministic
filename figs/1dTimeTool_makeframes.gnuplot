@@ -174,7 +174,7 @@ set log cb
 set cbrange [1:100]
 unset colorbox
 filelist = system("ls ./data_fs/raw/amox28216_r94_step[1-9][0-9]_image*.dat")
-outdir = './figs/2dTimeTool_frames_new/'
+outdir = './figs/2dTimeTool_frames_codesign/'
 unset xtics
 unset ytics
 i=-1
