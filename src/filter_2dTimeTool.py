@@ -4,8 +4,7 @@ import numpy as np
 import sys
 import re
 from utility import highpass,lowpass,gauss,sigmoid
-
-
+import cv2
 
 
 def main():
@@ -15,10 +14,10 @@ def main():
     f = np.array([])
     f_ = np.array([])
     for i,filename in enumerate(filenames):
-        m = re.match('(.*amox28216_r\d+_step\d+_image\d+.)dat',filename)
+        m = re.match('(.*)(amox28216_r\d+_step\d+_image\d+.)dat',filename)
         if m:
 ############### working a smoother, not boolean, version ##################
-            outname = m.group(1) + 'out'
+            outname = m.group(1) + m.group(2) + 'out'
             data = np.log(np.abs(np.loadtxt(filename))+1)#,skiprows=512))+1)
             scales = 1./(np.max(data,axis=1) - np.min(data,axis=1))
             if len(f)<data.shape[0]:
@@ -46,7 +45,7 @@ def main():
             sums = np.sum(out,axis=1)
             inds = np.where(sums>10)
             centroids[inds] = num[inds]/sums[inds]
-            outname = m.group(1) + 'simple.centroids.out'
+            outname = m.group(1) + m.group(2) + 'simple.centroids.out'
             np.savetxt(outname,centroids.T,fmt='%.2f')
             print(len(centroids[inds])/centroids.shape[0])
 
@@ -55,7 +54,7 @@ def main():
 
             #mulmat = np.outer(scales,derivfilt)
             #out = np.fft.ifft(DATA,axis=1).real
-            #outname = m.group(1) + 'deriv.out'
+            #outname = m.group(1) + m.group(2) + 'deriv.out'
             #np.savetxt(outname,out,fmt='%.2e')
 
 ############## this is the algo for homomorphic analysis #####################
@@ -71,38 +70,49 @@ def main():
             absout = np.abs(out)
             argout = np.angle(out)
 
+            scales = 1./(np.max(absout,axis=1) - np.min(absout,axis=1))
+            absout = absout*np.tile(scales,(absout.shape[1],1)).T
+
             a = np.log(absout)
             s = argout#np.sign(out)
             A = np.fft.fft(a,axis=1)
             B = np.copy(A)
             A *= gauss(f,0,.06)
             ALOW = np.copy(A)*gauss(f,0,.02)
-            B *= highpass(f,0.1,.1)*lowpass(f,.5,.1)
+            B *= highpass(f,0.1,.1)*lowpass(f,.3,.1)
             aa = np.fft.ifft(A,axis=1).real
             aalow = np.fft.ifft(ALOW,axis=1).real
             bb = np.fft.ifft(B,axis=1).real
 
             #out = np.ones(aalow.shape,dtype=float)*(aalow > .1)*(aa-bb > .1)
             out = (aa-bb)+(aalow-bb)
-            inds = np.where(out<0)
+            out = out - np.max(out,axis=1) + 1
+            out = sigmoid(out*5)
+            #out = out * 256./np.max(out)
+            #blur = cv2.medianBlur(out.astype(np.uint8),5)
+            #out = sigmoid(((blur.astype(float)/256.)-.9)*10)
+            #out = np.fft.ifft( np.fft.fft(np.copy(out),axis=0) * gauss(f_,0,.6),axis=0).real 
             #out[inds] = 0.
             #out *= 2.*np.tile(scales,(out.shape[1],1)).T
             #out -= np.tile(np.min(out,axis=1),(out.shape[1],1)).T + 1.
 
 
+
+            outname = m.group(1) + m.group(2) + 'lowfilt.out'
+            np.savetxt(outname,out,fmt='%.4e')
+
+
             ramp = np.arange(out.shape[1])
             ramp.shape = (1,len(ramp))
 
-            outname = m.group(1) + 'lowfilt.out'
-            np.savetxt(outname,out,fmt='%.4e')
-
-            centroids = np.zeros(out.shape[1],dtype=float)
+            hf_centroids = np.zeros(out.shape[1],dtype=float)
             num = np.sum(out*ramp,axis=1)
             sums = np.sum(out,axis=1)
             inds = np.where(sums>10)
-            centroids[inds] = num[inds]/sums[inds]
-            outname = m.group(1) + 'centroids.out'
-            np.savetxt(outname,centroids.T,fmt='%.2f')
+            hf_centroids[inds] = num[inds]/sums[inds]
+            outname = m.group(1) + m.group(2) + 'centroids.out'
+            headerstring = 'simple\thomomorph'
+            np.savetxt(outname,np.column_stack((centroids,hf_centroids)),fmt='%.2f',header=headerstring)
 
 
     return

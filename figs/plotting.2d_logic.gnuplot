@@ -75,11 +75,6 @@ set cntrlabel  format '%8.3g' font '' start 5 interval 20
 set mapping cartesian
 set datafile separator whitespace
 unset hidden3d
-set cntrparam order 4
-set cntrparam linear
-set cntrparam levels auto 5 unsorted
-set cntrparam firstlinetype 0
-set cntrparam points 5
 set size ratio 0 1,1
 set origin 0,0
 set style data image
@@ -165,8 +160,7 @@ set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap 
 simplefile(s,i)=sprintf('data_fs/raw/amox28216_r93_step%i_image%i.out',s,i)
 lowfiltfile(s,i)=sprintf('data_fs/raw/amox28216_r93_step%i_image%i.lowfilt.out',s,i)
 rawfile(s,i)=sprintf('data_fs/raw/amox28216_r93_step%i_image%i.dat',s,i)
-spcenfile(s,i)=sprintf('data_fs/raw/amox28216_r93_step%i_image%i.simple.centroids.out',s,i)
-hfcenfile(s,i)=sprintf('data_fs/raw/amox28216_r93_step%i_image%i.centroids.out',s,i)
+cenfile(s,i)=sprintf('data_fs/raw/amox28216_r93_step%i_image%i.centroids.out',s,i)
 GNUTERM = "x11"
 ## Last datafile plotted: "data_fs/raw/amox28216_r93_step80_image10.simple.centroids.out"
 set pointsize 0.5
@@ -187,14 +181,17 @@ set title 'sigmoid process image'
 splot simplefile(80,10) mat u 1:2:3 notitle
 set origin 0.33,0.33
 set title 'sp-centroids'
-splot spcenfile(80,10) u 1:0:(1):($1/1024) palette w points notitle 
+splot cenfile(80,10) u 1:0:(1):($1/1024) palette w points notitle 
 set origin 0.0,0.0
 set title 'homomorphic filtered boolean image'
-set auto cb
-set colorbox
 splot lowfiltfile(80,10) mat u 1:2:3 notitle
 set origin 0.33,0.0
 set title 'hf-centroids'
-splot hfcenfile(80,10) mat u 1:0:(1):($1/1024) palette w points notitle
+splot cenfile(80,10) u 2:0:(1):($2/1024) palette w points notitle
+set origin 0.66,0.17
+set title 'diff centroids'
+set cbrange [-10:10]
+set colorbox
+splot cenfile(80,10) u 1:2:(1):($2-$1) palette w points notitle
 unset multiplot
 #    EOF
