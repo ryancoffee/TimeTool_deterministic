@@ -15,7 +15,6 @@
 unset clip points
 set clip one
 unset clip two
-set errorbars front 1.000000 
 set border 31 front lt black linewidth 1.000 dashtype solid
 set zdata 
 set ydata 
@@ -35,16 +34,14 @@ set format y2 "% h"
 set format z "% h" 
 set format cb "% h" 
 set format r "% h" 
-set ttics format "% h"
 set timefmt "%d/%m/%y,%H:%M"
 set angles radians
 set tics back
 unset grid
 unset raxis
-set theta counterclockwise right
 set style parallel front  lt black linewidth 2.000 dashtype solid
 set key title "" center
-set key fixed right top vertical Right noreverse enhanced autotitle nobox
+set key right top vertical Right noreverse enhanced autotitle nobox
 set key noinvert samplen 4 spacing 1 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
@@ -55,7 +52,6 @@ unset style line
 unset style arrow
 set style histogram clustered gap 2 title textcolor lt -1
 unset object
-set style textbox transparent margins  1.0,  1.0 border  lt -1 linewidth  1.0
 set offsets 0, 0, 0, 0
 set pointsize 1
 set pointintervalbox 1
@@ -63,10 +59,7 @@ set encoding default
 unset polar
 unset parametric
 unset decimalsign
-unset micro
-unset minussign
 set view map scale 1
-set rgbmax 255
 set samples 100, 100
 set isosamples 10, 10
 set surface 
@@ -96,8 +89,6 @@ set mztics default
 set mx2tics default
 set my2tics default
 set mcbtics default
-set mrtics default
-set nomttics
 set xtics border in scale 1,0.5 mirror norotate  autojustify
 set xtics  norangelimit autofreq 
 set ytics border in scale 1,0.5 mirror norotate  autojustify
@@ -110,7 +101,6 @@ set cbtics border in scale 1,0.5 mirror norotate  autojustify
 set cbtics  norangelimit autofreq 
 set rtics axis in scale 1,0.5 nomirror norotate  autojustify
 set rtics  norangelimit autofreq 
-unset ttics
 set title "" 
 set title  font "" norotate
 set timestamp bottom 
@@ -137,11 +127,7 @@ set zrange [ * : * ] noreverse nowriteback
 set cblabel "" 
 set cblabel  font "" textcolor lt -1 rotate
 set cbrange [ * : * ] noreverse nowriteback
-set rlabel "" 
-set rlabel  font "" textcolor lt -1 norotate
 set rrange [ * : * ] noreverse nowriteback
-unset logscale
-unset jitter
 set zero 1e-08
 set lmargin  -1
 set bmargin  -1
