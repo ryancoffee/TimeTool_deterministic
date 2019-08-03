@@ -139,15 +139,15 @@ set loadpath
 set fontpath 
 set psdir
 set fit noerrorvariables
-file(i,d)=sprintf('../data/processed/xppc00117_r119_ipm%i_del%i.out.maxinds',i,d)
+file(i,d)=sprintf('../data_fs/processed/xppc00117_r119_ipm%i_del%i.out.maxinds',i,d)
 GNUTERM = "x11"
-GPFUN_file = "file(i,d)=sprintf('../data/processed/xppc00117_r119_ipm%i_del%i.out.maxinds',i,d)"
+GPFUN_file = "file(i,d)=sprintf('../data_fs/processed/xppc00117_r119_ipm%i_del%i.out.maxinds',i,d)"
 set log y
 set log x
 delay = 13
 ipmvals = '999 1274 1623 2069 2636  3359 4281 5455 6951 8858 11288 14384 18329 23357 29763 37926 48329 61584 78475'
-step=log(1e5/1e3)/19
-i2ipm(i) = exp(log(1e3) + step*(i))
+step=log(1e2)/19
+i2ipm(i) = exp(log(1) + step*(i))
 set xrange [900:1.1e5]
 set yrange [8:1.1e3]
 set xlabel 'absorbed dose [uJ/cm^2]'

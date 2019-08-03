@@ -1,0 +1,4 @@
+./analysis/plotting.ipms.r136.gnuplot
+
+but first do an absdose.py
+./src/absdose.py data_fs/processed/xppc00117_r136_refsub_ipm.hist data_fs/reference/yag.attlen 9500 20 500
