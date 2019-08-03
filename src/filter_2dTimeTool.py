@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import re
 from utility import highpass,lowpass,gauss,sigmoid
-import cv2
+#import cv2
 
 def analogprocess(invec,bwd=1e2,dt=1):
     f = np.fft.fftfreq(invec.shape[0],dt)/bwd
@@ -16,7 +16,7 @@ def analogprocess(invec,bwd=1e2,dt=1):
     DS = np.zeros(S.shape,dtype = complex)
     DDS = np.zeros(S.shape,dtype = complex)
     inds = np.where(np.abs(f) < 1.)
-    logscale = 5e3
+    logscale = 15 
     logf = np.zeros(S.shape,dtype = float)
     logf[1:] = np.log(np.abs(f[1:])*logscale)
     linds = np.where( logf < 0 ) 
@@ -52,7 +52,7 @@ def analogprocess(invec,bwd=1e2,dt=1):
     deltas = np.zeros(ids.shape,dtype = float)
     inds = np.where(thresh < -.1)
     deltas[inds] = np.abs(1./(ds[inds]))
-    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real))
+    return np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real))
 
 def main():
     if len(sys.argv)<1:
@@ -64,16 +64,21 @@ def main():
         m = re.match('(.*)(amox28216_r\d+_step\d+_image\d+.)dat',filename)
         if m:
 
-            outname = m.group(1) + m.group(2) + 'cookiebox_filter.out'
-            data = np.log(np.abs(np.loadtxt(filename))+1)#,skiprows=512))+1)
+            #data = np.log(np.abs(np.loadtxt(filename,skiprows=512))+1)
+            data = np.loadtxt(filename,skiprows=512)
             scales = 1./(np.max(data,axis=1) - np.min(data,axis=1))
             datanorm = 2.*data*np.tile(scales,(data.shape[1],1)).T - 1.
             #for row in range(datanorm.shape[0]//2):
-            row=datanorm.shape[0]//2
-            output = analogprocess(invec,bwd=1e2,dt=1):
-
+            row=68
+            output = analogprocess(data[row,:],bwd=.07,dt=1)
+            outname = m.group(1) + m.group(2) + 'cookiebox_filter.out'
+            np.savetxt(outname,output,fmt='%.3e')
+            print('saved {}'.format(outname))
+            
+        continue
 
 ############### working a smoother, not boolean, version ##################
+        if m:
             outname = m.group(1) + m.group(2) + 'out'
             data = np.log(np.abs(np.loadtxt(filename))+1)#,skiprows=512))+1)
             scales = 1./(np.max(data,axis=1) - np.min(data,axis=1))
