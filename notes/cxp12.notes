@@ -1,0 +1,19 @@
+32 pixels per clock cycle @ 250MHz clock 
+8 bit pixels. 
+
+OK, so 64e9 bits/sec means 8 GB/s
+
+32 GB/s for all 4 boards
+
+
+
+8 bits x 1024 pixels = 8192 bits
+each line reports (Matt 256 bit number) (UI32 x4 and UI16 volume, and UI112 bit padding) (rise nad fall loc, rise and fall slope, area, and padding)
+
+x32 compression.
+
+
+1GBps input to the accelerator chip via PCIe
+
+
+
