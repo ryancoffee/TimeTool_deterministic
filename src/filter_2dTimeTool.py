@@ -6,6 +6,115 @@ import re
 from utility import highpass,lowpass,gauss,sigmoid
 #import cv2
 
+def logprocess(invec,bwd=1e2,dt=1):
+    f = np.fft.fftfreq(invec.shape[0],dt)/bwd
+    offset = np.min(invec) - 1
+    s = np.log( np.copy(invec) - offset )
+    S = np.fft.fft(s) 
+    I = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    IDS = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    DDS = np.zeros(S.shape,dtype = complex)
+    MUL = np.zeros(S.shape,dtype = complex)
+    inds = np.where(np.abs(f) < 1.)
+    width = .5
+    center = .25
+    mulinds = np.where( (np.abs(f) < center+width ) * ( np.abs(f) > center-width) )
+    c2 = np.zeros(S.shape,dtype = float)
+    c2mul = np.zeros(S.shape,dtype = float)
+    c2[inds] = np.power(np.cos(np.abs(f[inds])*np.pi/2.),int(2))
+    c2mul[mulinds] = np.power(np.cos((np.abs(f[mulinds])-center)/width*np.pi/2.),int(2))
+    fpow1 = np.zeros(S.shape,dtype = float)
+    fpow2 = np.zeros(S.shape,dtype = float)
+    fpowm1 = np.zeros(S.shape,dtype = float)
+    fpow2 = np.power(f,int(2))
+    fpowm1[1:] = np.power(f[1:],int(-1))
+    FILT_I = np.zeros(S.shape,dtype = complex)
+    FILT_IDS = np.zeros(S.shape,dtype = complex)
+    FILT_DS = np.zeros(S.shape,dtype = complex)
+    FILT_DDS = np.zeros(S.shape,dtype = complex)
+    FILT_MUL = np.zeros(S.shape,dtype = complex)
+    FILT_I[inds] = c2[inds]*fpowm1[inds] + 0j
+    FILT_IDS[inds] = c2[inds] + 0j
+    FILT_DS[inds] = 0. + 1j * f[inds]*c2[inds]
+    FILT_DDS[inds] = -fpow2[inds] * c2[inds] + 0j
+    FILT_MUL[mulinds] = c2mul[mulinds] + 0j
+    I[inds] = np.copy(S[inds]) * FILT_I[inds] 
+    IDS[inds] = np.copy(S[inds]) * FILT_IDS[inds]
+    DS[inds] = np.copy(S[inds]) * FILT_DS[inds] 
+    DDS[inds] = np.copy(S[inds]) * FILT_DDS[inds]
+    MUL[mulinds] = np.copy(S[mulinds]) * FILT_MUL[mulinds]
+
+    dds = np.fft.ifft(DDS).real
+    ds = np.fft.ifft(DS).real
+    ids = np.fft.ifft(IDS).real
+    i = np.fft.ifft(I).real
+    mul = np.fft.ifft(MUL * c2).real
+    ########################################### getting close here ########################333
+
+    thresh = np.zeros(ids.shape,dtype = float)
+    thresh = ids + dds
+    deltas = np.zeros(ids.shape,dtype = float)
+    inds = np.where(thresh < -4)
+    deltas[inds] = np.abs(1./(ds[inds]))
+
+    filt_i = np.exp(np.roll(np.fft.ifft(FILT_I),100))
+    filt_ids = np.exp(np.roll(np.fft.ifft(FILT_IDS),100))
+    filt_ds = np.exp(np.roll(np.fft.ifft(FILT_DS),100))
+    filt_dds = np.exp(np.roll(np.fft.ifft(FILT_DDS),100))
+    filt_mul = np.exp(np.roll(np.fft.ifft(FILT_MUL),100))
+    return np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real, mul, filt_mul.real, np.abs(MUL) ))
+
+
+def theoryprocess(invec,bwd=1e2,dt=1):
+    f = np.fft.fftfreq(invec.shape[0],dt)/bwd
+    s = np.copy(invec)
+    S = np.fft.fft(s) 
+    I = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    IDS = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    DDS = np.zeros(S.shape,dtype = complex)
+    inds = np.where(np.abs(f) < 1.)
+    c2 = np.zeros(S.shape,dtype = float)
+    c2[inds] = np.power(np.cos(np.abs(f[inds])*np.pi/2.),int(2))
+    fpow1 = np.zeros(S.shape,dtype = float)
+    fpow2 = np.zeros(S.shape,dtype = float)
+    fpowm1 = np.zeros(S.shape,dtype = float)
+    fpow2 = np.power(f,int(2))
+    fpowm1[1:] = np.power(f[1:],int(-1))
+    FILT_I = np.zeros(S.shape,dtype = complex)
+    FILT_IDS = np.zeros(S.shape,dtype = complex)
+    FILT_DS = np.zeros(S.shape,dtype = complex)
+    FILT_DDS = np.zeros(S.shape,dtype = complex)
+    FILT_I[inds] = c2[inds]*fpowm1[inds] + 0j
+    FILT_IDS[inds] = c2[inds] + 0j
+    FILT_DS[inds] = 0. + 1j * f[inds]*c2[inds]
+    FILT_DDS[inds] = -fpow2[inds] * c2[inds] + 0j
+    I[inds] = np.copy(S[inds]) * FILT_I[inds] 
+    IDS[inds] = np.copy(S[inds]) * FILT_IDS[inds]
+    DS[inds] = np.copy(S[inds]) * FILT_DS[inds] 
+    DDS[inds] = np.copy(S[inds]) * FILT_DDS[inds]
+
+    dds = np.fft.ifft(DDS).real
+    ds = np.fft.ifft(DS).real
+    ids = np.fft.ifft(IDS).real
+    i = np.fft.ifft(I).real
+
+    thresh = np.zeros(ids.shape,dtype = float)
+    thresh = ids * dds
+    deltas = np.zeros(ids.shape,dtype = float)
+    inds = np.where(thresh < -5e-4)
+    deltas[inds] = np.abs(1./(ds[inds]))
+
+    filt_i = np.roll(np.fft.ifft(FILT_I),100)
+    filt_ids = np.roll(np.fft.ifft(FILT_IDS),100)
+    filt_ds = np.roll(np.fft.ifft(FILT_DS),100)
+    filt_dds = np.roll(np.fft.ifft(FILT_DDS),100)
+
+    return np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real))
+
 def analogprocess(invec,bwd=1e2,dt=1):
     f = np.fft.fftfreq(invec.shape[0],dt)/bwd
     s = np.copy(invec)
@@ -16,7 +125,7 @@ def analogprocess(invec,bwd=1e2,dt=1):
     DS = np.zeros(S.shape,dtype = complex)
     DDS = np.zeros(S.shape,dtype = complex)
     inds = np.where(np.abs(f) < 1.)
-    logscale = 15 
+    logscale = 2000
     logf = np.zeros(S.shape,dtype = float)
     logf[1:] = np.log(np.abs(f[1:])*logscale)
     linds = np.where( logf < 0 ) 
@@ -61,7 +170,7 @@ def main():
     f = np.array([])
     f_ = np.array([])
     for i,filename in enumerate(filenames):
-        m = re.match('(.*)(amox28216_r\d+_step\d+_image\d+.)dat',filename)
+        m = re.match('(.*)raw/(amox28216_r\d+_step\d+_image\d+.)dat',filename)
         if m:
 
             #data = np.log(np.abs(np.loadtxt(filename,skiprows=512))+1)
@@ -70,8 +179,8 @@ def main():
             datanorm = 2.*data*np.tile(scales,(data.shape[1],1)).T - 1.
             #for row in range(datanorm.shape[0]//2):
             row=68
-            output = analogprocess(data[row,:],bwd=.07,dt=1)
-            outname = m.group(1) + m.group(2) + 'cookiebox_filter.out'
+            output = logprocess(data[row,:],bwd=.1,dt=1)
+            outname = m.group(1) + 'processed/' + m.group(2) + 'cookiebox_filter.out'
             np.savetxt(outname,output,fmt='%.3e')
             print('saved {}'.format(outname))
             
@@ -79,7 +188,7 @@ def main():
 
 ############### working a smoother, not boolean, version ##################
         if m:
-            outname = m.group(1) + m.group(2) + 'out'
+            outname = m.group(1) + 'processed/' + m.group(2) + 'out'
             data = np.log(np.abs(np.loadtxt(filename))+1)#,skiprows=512))+1)
             scales = 1./(np.max(data,axis=1) - np.min(data,axis=1))
             if len(f)<data.shape[0]:
@@ -107,7 +216,7 @@ def main():
             sums = np.sum(out,axis=1)
             inds = np.where(sums>10)
             centroids[inds] = num[inds]/sums[inds]
-            outname = m.group(1) + m.group(2) + 'simple.centroids.out'
+            outname = m.group(1) + 'processed/' + m.group(2) + 'simple.centroids.out'
             np.savetxt(outname,centroids.T,fmt='%.2f')
             print(len(centroids[inds])/centroids.shape[0])
 
@@ -116,7 +225,7 @@ def main():
 
             #mulmat = np.outer(scales,derivfilt)
             #out = np.fft.ifft(DATA,axis=1).real
-            #outname = m.group(1) + m.group(2) + 'deriv.out'
+            #outname = m.group(1) + 'processed/' + m.group(2) + 'deriv.out'
             #np.savetxt(outname,out,fmt='%.2e')
 
 ############## this is the algo for homomorphic analysis #####################
@@ -160,7 +269,7 @@ def main():
 
 
 
-            outname = m.group(1) + m.group(2) + 'lowfilt.out'
+            outname = m.group(1) + 'processed/' + m.group(2) + 'lowfilt.out'
             np.savetxt(outname,out,fmt='%.4e')
 
 
@@ -172,7 +281,7 @@ def main():
             sums = np.sum(out,axis=1)
             inds = np.where(sums>10)
             hf_centroids[inds] = num[inds]/sums[inds]
-            outname = m.group(1) + m.group(2) + 'centroids.out'
+            outname = m.group(1) + 'processed/' + m.group(2) + 'centroids.out'
             headerstring = 'simple\thomomorph'
             np.savetxt(outname,np.column_stack((centroids,hf_centroids)),fmt='%.2f',header=headerstring)
 
