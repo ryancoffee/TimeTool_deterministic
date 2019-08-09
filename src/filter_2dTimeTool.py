@@ -18,13 +18,23 @@ def logprocess(invec,bwd=1e2,dt=1):
     DDS = np.zeros(S.shape,dtype = complex)
     MUL = np.zeros(S.shape,dtype = complex)
     inds = np.where(np.abs(f) < 1.)
-    width = .5
-    center = .25
-    mulinds = np.where( (np.abs(f) < center+width ) * ( np.abs(f) > center-width) )
+    center = .2
+    width = .05
+    risefall = width/4.
+    fallinds = np.where( (np.abs(f) > center+width-risefall) * (np.abs(f) < center+width+risefall) )
+    riseinds = np.where( (np.abs(f) > center-width-risefall) * (np.abs(f) < center-width+risefall) )
+    holdinds = np.where( (np.abs(f) > center-width+risefall) * (np.abs(f) < center+width-risefall) )
+    #mulinds = np.where( (np.abs(f) < center+width ) * ( np.abs(f) > center-width) )
+    #mulinds = np.where(np.abs(f) < .5)
     c2 = np.zeros(S.shape,dtype = float)
-    c2mul = np.zeros(S.shape,dtype = float)
     c2[inds] = np.power(np.cos(np.abs(f[inds])*np.pi/2.),int(2))
-    c2mul[mulinds] = np.power(np.cos((np.abs(f[mulinds])-center)/width*np.pi/2.),int(2))
+    c2mul = np.zeros(S.shape,dtype = float)
+    c2mul[riseinds] = np.power(np.cos(np.abs(f[riseinds] - (center-width) )/risefall*np.pi/2.),int(2))
+    c2mul[fallinds] = np.power(np.cos(np.abs(f[fallinds] - (center+width) )/risefall*np.pi/2.),int(2))
+    c2mul[holdinds] = 1. 
+    #c2mul[mulinds] = np.power(np.cos((np.abs(f[mulinds])-center)/width*np.pi/2.),int(2))
+
+    #c2mul[mulinds] = np.power(np.cos(np.abs(f[mulinds])*np.pi/2.),int(2))
     fpow1 = np.zeros(S.shape,dtype = float)
     fpow2 = np.zeros(S.shape,dtype = float)
     fpowm1 = np.zeros(S.shape,dtype = float)
@@ -39,34 +49,48 @@ def logprocess(invec,bwd=1e2,dt=1):
     FILT_IDS[inds] = c2[inds] + 0j
     FILT_DS[inds] = 0. + 1j * f[inds]*c2[inds]
     FILT_DDS[inds] = -fpow2[inds] * c2[inds] + 0j
-    FILT_MUL[mulinds] = c2mul[mulinds] + 0j
+    FILT_MUL = c2mul
     I[inds] = np.copy(S[inds]) * FILT_I[inds] 
     IDS[inds] = np.copy(S[inds]) * FILT_IDS[inds]
     DS[inds] = np.copy(S[inds]) * FILT_DS[inds] 
     DDS[inds] = np.copy(S[inds]) * FILT_DDS[inds]
-    MUL[mulinds] = np.copy(S[mulinds]) * FILT_MUL[mulinds]
+    MUL = np.copy(S) * FILT_MUL
+    MUL[0] = 0. + 0j
+    #MUL[mulinds] = FILT_MUL[mulinds]
 
     dds = np.fft.ifft(DDS).real
     ds = np.fft.ifft(DS).real
     ids = np.fft.ifft(IDS).real
     i = np.fft.ifft(I).real
-    mul = np.fft.ifft(MUL * c2).real
+    mul = np.fft.ifft(MUL).real
     ########################################### getting close here ########################333
 
     thresh = np.zeros(ids.shape,dtype = float)
-    thresh = ids - mul
-    THRESH = np.fft.fft(np.copy(thresh))*c2*1j*f
-    thresh = np.fft.ifft(THRESH).real * np.abs(ds)
+    thresh = ids - mul 
+    THRESH = np.fft.fft(thresh) #* c2 * 1j * f
+    THRESH[0] = 0.
     deltas = np.zeros(ids.shape,dtype = float)
-    inds = np.where(thresh < -4)
-    deltas[inds] = np.abs(1./(ds[inds]))
+    deltas = np.fft.ifft(THRESH).real
+    mid = (np.max(deltas) + np.min(deltas))/2.
+    scale = np.max(deltas) - np.min(deltas)
+    deltas = sigmoid((deltas - mid)/scale*20) 
+    ddeltas = np.fft.ifft((np.fft.fft(deltas) *1j * f)).real
 
     filt_i = np.exp(np.roll(np.fft.ifft(FILT_I),100))
     filt_ids = np.exp(np.roll(np.fft.ifft(FILT_IDS),100))
     filt_ds = np.exp(np.roll(np.fft.ifft(FILT_DS),100))
     filt_dds = np.exp(np.roll(np.fft.ifft(FILT_DDS),100))
     filt_mul = np.exp(np.roll(np.fft.ifft(FILT_MUL),100))
-    return np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real, mul, filt_mul.real, np.abs(MUL) ))
+    pix = np.arange(len(ids))
+    maxind = np.argmax(ddeltas)
+    minind = np.argmin(ddeltas)
+    win=int(25)
+    inds = np.arange(maxind-win,maxind+win,dtype=int)
+    risex = np.sum(ddeltas[inds]*pix[inds])/np.sum(ddeltas[inds])
+    inds = np.arange(minind-win,minind+win,dtype=int)
+    fallx = np.sum(ddeltas[inds]*pix[inds])/np.sum(ddeltas[inds])
+    print(risex,fallx,fallx-risex,scale)
+    return np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real, mul, filt_mul.real, np.abs(MUL),ddeltas))
 
 
 def theoryprocess(invec,bwd=1e2,dt=1):
