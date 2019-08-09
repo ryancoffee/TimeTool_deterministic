@@ -1,4 +1,4 @@
-#!/usr/bin/python3.5
+#!/usr/bin/python3
 
 import numpy as np
 import sys
@@ -54,7 +54,9 @@ def logprocess(invec,bwd=1e2,dt=1):
     ########################################### getting close here ########################333
 
     thresh = np.zeros(ids.shape,dtype = float)
-    thresh = ids + dds
+    thresh = ids - mul
+    THRESH = np.fft.fft(np.copy(thresh))*c2*1j*f
+    thresh = np.fft.ifft(THRESH).real * np.abs(ds)
     deltas = np.zeros(ids.shape,dtype = float)
     inds = np.where(thresh < -4)
     deltas[inds] = np.abs(1./(ds[inds]))
