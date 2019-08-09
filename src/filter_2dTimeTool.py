@@ -18,8 +18,8 @@ def logprocess(invec,bwd=1e2,dt=1):
     DDS = np.zeros(S.shape,dtype = complex)
     MUL = np.zeros(S.shape,dtype = complex)
     inds = np.where(np.abs(f) < 1.)
-    center = .2
-    width = .05
+    center = .5
+    width = .2
     risefall = width/4.
     fallinds = np.where( (np.abs(f) > center+width-risefall) * (np.abs(f) < center+width+risefall) )
     riseinds = np.where( (np.abs(f) > center-width-risefall) * (np.abs(f) < center-width+risefall) )
@@ -33,6 +33,7 @@ def logprocess(invec,bwd=1e2,dt=1):
     c2mul[fallinds] = np.power(np.cos(np.abs(f[fallinds] - (center+width) )/risefall*np.pi/2.),int(2))
     c2mul[holdinds] = 1. 
     #c2mul[mulinds] = np.power(np.cos((np.abs(f[mulinds])-center)/width*np.pi/2.),int(2))
+    #c2mul=gauss(np.abs(f),.5,.1)
 
     #c2mul[mulinds] = np.power(np.cos(np.abs(f[mulinds])*np.pi/2.),int(2))
     fpow1 = np.zeros(S.shape,dtype = float)
@@ -50,13 +51,16 @@ def logprocess(invec,bwd=1e2,dt=1):
     FILT_DS[inds] = 0. + 1j * f[inds]*c2[inds]
     FILT_DDS[inds] = -fpow2[inds] * c2[inds] + 0j
     FILT_MUL = c2mul
+    FILT_MUL[0] = 0.
     I[inds] = np.copy(S[inds]) * FILT_I[inds] 
     IDS[inds] = np.copy(S[inds]) * FILT_IDS[inds]
     DS[inds] = np.copy(S[inds]) * FILT_DS[inds] 
     DDS[inds] = np.copy(S[inds]) * FILT_DDS[inds]
     MUL = np.copy(S) * FILT_MUL
-    MUL[0] = 0. + 0j
-    #MUL[mulinds] = FILT_MUL[mulinds]
+    filt_mul = (np.roll(np.fft.ifft(FILT_MUL),100))
+    #filt_mul[200:] = 0.
+    #FILT_MUL = np.fft.fft(filt_mul)
+    MUL = np.copy(S) * FILT_MUL
 
     dds = np.fft.ifft(DDS).real
     ds = np.fft.ifft(DS).real
@@ -73,14 +77,14 @@ def logprocess(invec,bwd=1e2,dt=1):
     deltas = np.fft.ifft(THRESH).real
     mid = (np.max(deltas) + np.min(deltas))/2.
     scale = np.max(deltas) - np.min(deltas)
-    deltas = sigmoid((deltas - mid)/scale*20) 
+    #deltas = sigmoid((deltas - mid)/scale*20)  # this line, only use if you account for the intensity dependent broadening of the signal due to sigmoid
+    #deltas = (deltas - mid)*2./scale 
     ddeltas = np.fft.ifft((np.fft.fft(deltas) *1j * f)).real
 
-    filt_i = np.exp(np.roll(np.fft.ifft(FILT_I),100))
-    filt_ids = np.exp(np.roll(np.fft.ifft(FILT_IDS),100))
-    filt_ds = np.exp(np.roll(np.fft.ifft(FILT_DS),100))
-    filt_dds = np.exp(np.roll(np.fft.ifft(FILT_DDS),100))
-    filt_mul = np.exp(np.roll(np.fft.ifft(FILT_MUL),100))
+    filt_i = (np.roll(np.fft.ifft(FILT_I),100))
+    filt_ids = (np.roll(np.fft.ifft(FILT_IDS),100))
+    filt_ds = (np.roll(np.fft.ifft(FILT_DS),100))
+    filt_dds = (np.roll(np.fft.ifft(FILT_DDS),100))
     pix = np.arange(len(ids))
     maxind = np.argmax(ddeltas)
     minind = np.argmin(ddeltas)
@@ -205,7 +209,7 @@ def main():
             datanorm = 2.*data*np.tile(scales,(data.shape[1],1)).T - 1.
             #for row in range(datanorm.shape[0]//2):
             row=68
-            output = logprocess(data[row,:],bwd=.1,dt=1)
+            output = logprocess(data[row,:],bwd=.05,dt=1)
             outname = m.group(1) + 'processed/' + m.group(2) + 'cookiebox_filter.out'
             np.savetxt(outname,output,fmt='%.3e')
             print('saved {}'.format(outname))
