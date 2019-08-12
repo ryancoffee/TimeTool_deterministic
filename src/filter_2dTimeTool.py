@@ -80,12 +80,21 @@ def logprocess(invec,bwd=1e2,dt=1):
     #deltas = sigmoid((deltas - mid)/scale*20)  # this line, only use if you account for the intensity dependent broadening of the signal due to sigmoid
     #deltas = (deltas - mid)*2./scale 
     ddeltas = np.fft.ifft((np.fft.fft(deltas) *1j * f)).real
+    expdd = np.exp(np.abs(ddeltas)/.05)
+    ###### remember working in log space still so far. ###########3
+    pix = np.arange(1,len(ids)+1)
+    NUM = np.fft.fft(expdd * pix)*gauss(f,0,.2)
+    DENOM = np.fft.fft(expdd)*gauss(f,0,.2)
+    result = (np.fft.ifft(NUM).real)/(np.fft.ifft(DENOM).real)
+    h,bins = np.histogram(result[100:-100],len(ids)//2,range = (0,len(ids)))
+    hist = np.column_stack((h,bins[:-1]))
 
     filt_i = (np.roll(np.fft.ifft(FILT_I),100))
     filt_ids = (np.roll(np.fft.ifft(FILT_IDS),100))
     filt_ds = (np.roll(np.fft.ifft(FILT_DS),100))
     filt_dds = (np.roll(np.fft.ifft(FILT_DDS),100))
-    pix = np.arange(len(ids))
+    #(ddeltas[posinds] * pix[posinds]) - ddeltas[posinds] 
+    
     maxind = np.argmax(ddeltas)
     minind = np.argmin(ddeltas)
     win=int(25)
@@ -94,7 +103,7 @@ def logprocess(invec,bwd=1e2,dt=1):
     inds = np.arange(minind-win,minind+win,dtype=int)
     fallx = np.sum(ddeltas[inds]*pix[inds])/np.sum(ddeltas[inds])
     print(risex,fallx,fallx-risex,scale)
-    return np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real, mul, filt_mul.real, np.abs(MUL),ddeltas))
+    return (np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real, mul, filt_mul.real, np.abs(MUL),ddeltas,expdd,result)),hist)
 
 
 def theoryprocess(invec,bwd=1e2,dt=1):
@@ -209,9 +218,11 @@ def main():
             datanorm = 2.*data*np.tile(scales,(data.shape[1],1)).T - 1.
             #for row in range(datanorm.shape[0]//2):
             row=68
-            output = logprocess(data[row,:],bwd=.05,dt=1)
+            (output,hist) = logprocess(data[row,:],bwd=.05,dt=1)
             outname = m.group(1) + 'processed/' + m.group(2) + 'cookiebox_filter.out'
             np.savetxt(outname,output,fmt='%.3e')
+            outname = m.group(1) + 'processed/' + m.group(2) + 'cookiebox_filter.hist'
+            np.savetxt(outname,hist,fmt='%i')
             print('saved {}'.format(outname))
             
         continue
@@ -296,7 +307,6 @@ def main():
             #out[inds] = 0.
             #out *= 2.*np.tile(scales,(out.shape[1],1)).T
             #out -= np.tile(np.min(out,axis=1),(out.shape[1],1)).T + 1.
-
 
 
             outname = m.group(1) + 'processed/' + m.group(2) + 'lowfilt.out'
