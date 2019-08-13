@@ -6,21 +6,22 @@ from cmath import rect;
 import pdb as debug;
 from utility import *
 import re
+from sklearn.preprocessing import MinMaxScaler
 
 def main():
 	nprect = np.vectorize(rect)
 	
-	#dirstr = './data_fs/raw/'
-	dirstr = './data_scratch/processed/'
-	skipshots = 10
+	dirstr = './data_fs/processed/'
+	#dirstr = './data_scratch/processed/'
+	skipshots = 20
 	skipsteps = 1
 	num = 0.0
 
 	ratio = .1
 	runstrs = ['100']
 	vwins = [(575,585)]*len(runstrs) 
-	samplerates = [100]*len(runstrs)
-	printsamples = [True]*len(runstrs)
+	samplerates = [1000]*len(runstrs)
+	printsamples = [False]*len(runstrs)
 	subrefs = [True]*len(runstrs)
 	delayscales = [1.e3]*len(runstrs)
 	attens = [1.]*len(runstrs)
@@ -49,101 +50,87 @@ def main():
 		EBdet = Detector('EBeam')
 		EOrbits = Detector('EOrbits')
 		epics13x = Detector('AMO:PPL:MMS:13.RBV')
+		xind = int(0)
 		epics14y = Detector('AMO:PPL:MMS:14.RBV')
+		yind = int(1)
 		epics15z = Detector('AMO:PPL:MMS:15.RBV')
+		zind = int(2)
 		epics16t = Detector('AMO:PPL:MMS:16.RBV')
+		tind = int(3)
 		evr = Detector('NoDetector.0:Evr.0')
 		cd = Detector('ControlData')
 		y_init = 0
 		y_final = 0
 		R = np.zeros((0,nsamples),dtype=float)
-		n_eb_vals = 19
-		eb_data = np.zeros(n_eb_vals,dtype=float)
-		E = np.zeros((0,eb_data.shape[0]),dtype=float)
-		n_gd_vals = 6
-		gd_data = np.zeros(n_gd_vals,dtype=float)
-		G = np.zeros((0,gd_data.shape[0]),dtype=float)
-		d_data = np.zeros(2,dtype=float)
-		D = np.zeros((0,d_data.shape[0]),dtype=float)
+		P = np.zeros((0,3),dtype=float)
+		nsteps = 0
 
-		'''The third edition: take the average of each step and convert both axes to the right units. '''
 		for run in ds.runs():
 			img = np.zeros((0,nsamples))
 			for nstep,step in enumerate(run.steps()):
-				print('checking step ',nstep)
-				if nstep%skipsteps==0:
-					pvList = cd().pvControls()
-					for pv in pvList:
-						print(pv.name())
-						if y_init == 0:
-							y_init = pv.value()
-						y_final = pv.value()
-						print('Step', nstep, 'name/value',pv.name(),pv.value())
+				nsteps = nstep
+				if not nstep % skipsteps:
 					for nevent,evt in enumerate(step.events()):
-						if not nevent%skipshots:
-							if (printsample and not nevent%samplerates[i]):
-								print('x=%.3f\t%.3f\t%.3f\t%.3f' %(epics13x(),epics14y(),epics15z(),epics16t()))
-								print('printing image {}'.format(nevent))
+						if not nevent % skipshots:
+							if (printsample and not nevent % samplerates[i]):
+								print('x %.4f\ty %.4f\tz %.4f\tt %.4f\t\tfor step %i, image %i.' % (epics13x(),epics14y(),epics15z(),epics16t(),nstep,nevent))
 								img = det.image(evt);
-								print('image shape = {}'.format(img.shape))
 								if (img is None):
 									continue
 								filename='{}{}_r{}_step{}_image{}.dat'.format(dirstr, expstr, runstr, nstep, nevent)
 								np.savetxt(filename,img,fmt='%i')
-							lineout = np.zeros(nsamples,dtype=float)
-							ebResults = EBdet.get(evt)
-							gdResults = GDdet.get(evt)
+								print('image {} shape = {}'.format(filename,img.shape))
+							rowsums = np.zeros(img.shape[0],dtype=int)
 							img = det.image(evt)
 							if img is not None:
-								lineout = np.sum(img[vwin[0]:vwin[1],:],axis=0)/num
-								if R.shape[0] > 0:
-									R = np.row_stack((R,lineout))
+								rowsums = np.sum(img,axis=1)
+								p = np.array( (1e3*epics13x(),1e3*epics14y(),1e3*epics15z()) )
+								if (R.shape[0] > 0 ) * (P.shape[0] > 0):
+									R = np.row_stack( (R , rowsums) )
+									P = np.row_stack( (P, p) )
 								else:
-									R=lineout
-									R.reshape((len(lineout),1))
-									print(R.shape)
-							
-							if (ebResults is not None):
-								eb_data = (ebResults.ebeamL3Energy() , ebResults.ebeamCharge(), ebResults.ebeamEnergyBC1(), ebResults.ebeamEnergyBC2(), ebResults.ebeamLTU250(), ebResults.ebeamLTU450(), ebResults.ebeamLTUAngX(), ebResults.ebeamLTUAngY(), ebResults.ebeamLTUPosX(), ebResults.ebeamLTUPosY(), ebResults.ebeamUndAngX(), ebResults.ebeamUndAngY(), ebResults.ebeamUndPosX(), ebResults.ebeamUndPosY(), ebResults.ebeamPkCurrBC1(), ebResults.ebeamEnergyBC1(), ebResults.ebeamPkCurrBC2(), ebResults.ebeamEnergyBC2(), ebResults.ebeamDumpCharge())
-							else:
-								eb_data = np.zeros(n_eb_vals,dtype=float)
-	
-							if (gdResults is not None): 
-								gd_data = ( gdResults.f_11_ENRC(), gdResults.f_12_ENRC(), gdResults.f_21_ENRC(), gdResults.f_22_ENRC(), gdResults.f_63_ENRC(), gdResults.f_64_ENRC() )
-							else:
-								gd_data = np.zeros(n_gd_vals,dtype=float)
+									R = rowsums
+									P = p
 
-							d_data[0] = y_final*delayscales[i]
-	
-							D = np.row_stack((D,d_data))
-							G = np.row_stack((G,gd_data))
-							E = np.row_stack((E,eb_data))
+				if not nstep % 5:
+					filename='{}{}_r{}_knife.dat'.format(dirstr,expstr,runstr)
+					header = 'x[um]\ty[um]\tz[um]\trowsums, each row is 1024 long, so avg signal is the rowsum/1024'
+					np.savetxt(filename,np.column_stack((P,R)),fmt='%i',header=header)
+					print('intermittent save at step {}'.format(nstep))
 
-				if not nstep%2:
-					filename='{}{}_r{}_{}_{}_matrix.dat'.format(dirstr,expstr,runstr,vwin[0],vwin[1])
-					np.savetxt(filename,R,fmt='%i')
-					d_data_fullhdr = '{}'.format(d_data_hdr)
-					filename='{}{}_r{}_delays.dat'.format(dirstr, expstr, runstr)
-					np.savetxt(filename,D,fmt='%.6e',header=d_data_fullhdr)
-					filename='{}{}_r{}_eb.dat'.format(dirstr, expstr, runstr)
-					np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr)
-					filename='{}{}_r{}_gd.dat'.format(dirstr, expstr, runstr)
-					np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr)
-		y_dim = int(np.shape(R)[0])
-		x_dim = int(np.shape(R)[1])
-		lam = i2lam(np.arange(x_dim,dtype=float))
+		filename="%s/%s_r%s_knife.dat" % (dirstr,expstr,runstr)
+		header = 'x[um]\ty[um]\tz[um]\trowsums, each row is 1024 long, so avg signal is the rowsum/1024'
+		np.savetxt(filename,np.column_stack((P,R)),fmt='%i',header=header)
 
-		filename="%s/%s_r%s_%i_%i_matrix.dat" % (dirstr,expstr,runstr,vwin[0],vwin[1])
-		np.savetxt(filename,R,fmt='%i')
-		d_data_fullhdr = '{}\tgood'.format(d_data_hdr)
-		filename=dirstr + expstr + '_r' + runstr + '_delays.dat'
-		np.savetxt(filename,D,fmt='%.6e',header=d_data_fullhdr)
-		filename=dirstr + expstr + '_r' + runstr + '_eb.dat'
-		np.savetxt(filename,E,fmt='%.6e',header=eb_data_hdr)
-		filename=dirstr + expstr + '_r' + runstr + '_gd.dat'
-		np.savetxt(filename,G,fmt='%.6e',header=gd_data_hdr)
-		filename=dirstr + expstr + '_r' + runstr + '_wavelengths.dat'
-		np.savetxt(filename,lam,fmt='%.6e')
+		row = 512
+		ii8 = np.iinfo(np.int8)
+		scaler = MinMaxScaler(feature_range = (ii8.min,ii8.max),copy = False)
+		data = np.copy(R)
+		data = scaler.fit_transform(data)
+		filename="%s/%s_r%s_knife.scaled" % (dirstr,expstr,runstr)
+		header = 'x[um]\ty[um]\tz[um]\trowsums, each row is 1024 long and values are scaled by sklearn.MinMaxScaler'
+		np.savetxt(filename,np.column_stack((P,data)),fmt='%i',header=header)
+
+		low = np.min(P[:,yind])
+		high = np.max(P[:,yind])
+		nbins = 10
+		if nsteps > 20:
+			nbins = nsteps//2 
+		pbins = np.arange(low,high,25)
+		vbins = np.arange(ii8.min,ii8.max,4)
+		for row in range(0,2**10):
+			h,bp,bv = np.histogram2d(P[:,yind],data[:,row],bins = [pbins,vbins])
+			filename="%s/%s_r%s_knife.row%i.2dhist" % (dirstr,expstr,runstr,row)
+			np.savetxt(filename,h.T,fmt='%i')
+		''' 
+		Now, centroid the hist over the values (rows) for each of the delay bins.  
+		Format this as a tiled operation multiply by the np.sum( h*np.tile(vbins,shape??), axis=1?? ) / np.sum(h, axis = 1??)
+		The result should be pbins long.  Now you can fft and derivative the result and do np.sum(dddres * dres * pbins)/npsum(3dres*dres) to get the ... inspired by CookieBox logic dd*ids
+		This will give a vector of values that is delaybins long and can be fft differentiated to get the peak of the derivative...
+		
+		also, make a movie of the 2dhist... mostly because it will be pretty eye candy.
+		'''
+
 		print('Done saving for run ',runstr)
 	
 	print('Done.\n\t\t==== Have a nice day! :-)  =======\n\n')
