@@ -13,7 +13,7 @@ def main():
 	
 	dirstr = './data_fs/processed/'
 	#dirstr = './data_scratch/processed/'
-	skipshots = 20
+	skipshots = 10
 	skipsteps = 1
 	num = 0.0
 
@@ -116,12 +116,20 @@ def main():
 		nbins = 10
 		if nsteps > 20:
 			nbins = nsteps//2 
-		pbins = np.arange(low,high,25)
+		pbins = np.arange(low,high+25,25)
 		vbins = np.arange(ii8.min,ii8.max,4)
+		vramp = np.tile(vbins[:-1],reps = (len(pbins)-1,1))
+		result = np.zeros((len(pbins)-1,2**10),dtype=float)
 		for row in range(0,2**10):
 			h,bp,bv = np.histogram2d(P[:,yind],data[:,row],bins = [pbins,vbins])
 			filename="%s/%s_r%s_knife.row%i.2dhist" % (dirstr,expstr,runstr,row)
 			np.savetxt(filename,h.T,fmt='%i')
+			num = np.sum(h * vramp,axis = 1)
+			denom = np.sum(h,axis = 1)
+			inds = np.where(denom > 0)
+			result[inds,row] = num[inds] / denom[inds]
+		filename="%s/%s_r%s_knife.result" % (dirstr,expstr,runstr)
+		np.savetxt(filename,result,fmt='%.3f')
 		''' 
 		Now, centroid the hist over the values (rows) for each of the delay bins.  
 		Format this as a tiled operation multiply by the np.sum( h*np.tile(vbins,shape??), axis=1?? ) / np.sum(h, axis = 1??)
