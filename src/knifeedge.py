@@ -107,6 +107,7 @@ def main():
 		if nsteps > 20:
 			nbins = nsteps//2 
 		pbins = np.arange(low,high+25,25)
+		pramp = np.tile(pbins[:-1],reps = (2**10,1))
 		vbins = np.arange(ii8.min,ii8.max,4)
 		vramp = np.tile(vbins[:-1],reps = (len(pbins)-1,1))
 		result = np.zeros((len(pbins)-1,2**10),dtype=float)
@@ -124,18 +125,38 @@ def main():
 		f = np.fft.fftfreq(result.shape[0])
 		ftile = np.tile(f*cossq(f,20./result.shape[0]) ,reps = (result.shape[1],1)).T
 		f3tile = np.tile(np.power(f,int(3))*cossq(f,20./result.shape[0]) ,reps = (result.shape[1],1)).T
-		DRESULT = np.fft.fft(result,axis = 0) * 1j * ftile
 		D3RESULT = np.fft.fft(result,axis = 0) * -1j * f3tile
+		'''
+		f0tile = np.tile(cossq(f,20./result.shape[0]) ,reps = (result.shape[1],1)).T
+		f4tile = np.tile(np.power(f,int(4))*cossq(f,20./result.shape[0]) ,reps = (result.shape[1],1)).T
+		D0RESULT = np.fft.fft(result,axis = 0) * f0tile
+		D4RESULT = np.fft.fft(result,axis = 0) * -1 * f4tile
 		print('RESULT.shape = '.format(DRESULT.shape))
 		print('ftile.shape = '.format(ftile.shape))
-		dresult = np.fft.ifft(DRESULT,axis = 0).real
+		d0result = np.fft.ifft(D0RESULT,axis = 0).real
+		d4result = np.fft.ifft(D4RESULT,axis = 0).real
+		'''
+		#dresult = np.fft.ifft(DRESULT,axis = 0).real
+		dresult = np.diff(np.row_stack((result,result[-1,:])),axis = 0)
+		f2tile = np.tile(np.power(f,int(2))*cossq(f,20./result.shape[0]) ,reps = (dresult.shape[1],1)).T
+		D3RESULT = np.fft.fft(dresult,axis = 0) * -1 * f2tile
 		d3result = np.fft.ifft(D3RESULT,axis = 0).real
 		inds = np.where(dresult > 0)
 		dresult[inds] = 0.
 		inds = np.where(d3result < 0)
 		d3result[inds] = 0.
-		filename="%s/%s_r%s_knife.dresult" % (dirstr,expstr,runstr)
-		np.savetxt(filename,dresult*d3result,fmt='%.3f')
+		result = -dresult*d3result
+		thresh = 5e-2*np.max(result)
+		inds = np.where(result<thresh)
+		result[inds] = 0.
+		filename="%s/%s_r%s_knife.modresult" % (dirstr,expstr,runstr)
+		np.savetxt(filename,result,fmt='%.3f')
+		num = np.sum(result * pramp.T,axis = 0)
+		denom = np.sum(result,axis = 0)
+		centroids = num/denom
+		filename="%s/%s_r%s_knife.centroids" % (dirstr,expstr,runstr)
+		np.savetxt(filename,np.column_stack((np.arange(2**10),centroids)),fmt='%.3f')
+		
 		'''
 		Left to do, find the argmax for each row (1024 dimension) and take a window +/- 2 from there and compute their weighted average paddle position of edge.
 		This then gets written to a file along with the scaling factor for that "row" from that sklearn method
