@@ -4,6 +4,12 @@ from numpy.fft import ifft as IFFT;
 from numpy.fft import fftfreq as FREQS;
 from scipy.special import erf as erf
 
+def cossq(f,bwd):
+    r = np.zeros(f.shape,dtype = float)
+    inds = np.where(np.abs(f)<bwd)
+    r[inds] = np.power(np.cos(f[inds]/bwd*np.pi/2),int(2))
+    return r
+
 def gauss(x):
     return np.exp(-1.0*np.power(x,int(2)))
 

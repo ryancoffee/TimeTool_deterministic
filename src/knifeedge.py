@@ -15,16 +15,10 @@ def main():
 	#dirstr = './data_scratch/processed/'
 	skipshots = 10
 	skipsteps = 1
-	num = 0.0
 
-	ratio = .1
 	runstrs = ['100']
-	vwins = [(575,585)]*len(runstrs) 
 	samplerates = [1000]*len(runstrs)
 	printsamples = [False]*len(runstrs)
-	subrefs = [True]*len(runstrs)
-	delayscales = [1.e3]*len(runstrs)
-	attens = [1.]*len(runstrs)
 	expstrs = [str('amox28216')]*len(runstrs)
 	dets = ['OPAL1']*len(runstrs) 
 	nsamples = 1024
@@ -35,11 +29,7 @@ def main():
 	for i in range(len(runstrs)):
 		runstr = runstrs[i]
 		expstr = expstrs[i]
-		atten = attens[i]
-		vwin = vwins[i]
-		num = vwin[1]-vwin[0]
 		printsample = printsamples[i]
-		subref = subrefs[i]
 		dsourcestr = 'exp={}:run={}:smd'.format(expstr,runstr)
 		print("running:\t",dsourcestr)
 		ds = DataSource(dsourcestr)
@@ -96,7 +86,7 @@ def main():
 					filename='{}{}_r{}_knife.dat'.format(dirstr,expstr,runstr)
 					header = 'x[um]\ty[um]\tz[um]\trowsums, each row is 1024 long, so avg signal is the rowsum/1024'
 					np.savetxt(filename,np.column_stack((P,R)),fmt='%i',header=header)
-					print('intermittent save at step {}'.format(nstep))
+					print('intermittent save at step {}\tpaddle position = {}'.format(nstep,p))
 
 		filename="%s/%s_r%s_knife.dat" % (dirstr,expstr,runstr)
 		header = 'x[um]\ty[um]\tz[um]\trowsums, each row is 1024 long, so avg signal is the rowsum/1024'
@@ -130,6 +120,28 @@ def main():
 			result[inds,row] = num[inds] / denom[inds]
 		filename="%s/%s_r%s_knife.result" % (dirstr,expstr,runstr)
 		np.savetxt(filename,result,fmt='%.3f')
+
+		f = np.fft.fftfreq(result.shape[0])
+		ftile = np.tile(f*cossq(f,20./result.shape[0]) ,reps = (result.shape[1],1)).T
+		f3tile = np.tile(np.power(f,int(3))*cossq(f,20./result.shape[0]) ,reps = (result.shape[1],1)).T
+		DRESULT = np.fft.fft(result,axis = 0) * 1j * ftile
+		D3RESULT = np.fft.fft(result,axis = 0) * -1j * f3tile
+		print('RESULT.shape = '.format(DRESULT.shape))
+		print('ftile.shape = '.format(ftile.shape))
+		dresult = np.fft.ifft(DRESULT,axis = 0).real
+		d3result = np.fft.ifft(D3RESULT,axis = 0).real
+		inds = np.where(dresult > 0)
+		dresult[inds] = 0.
+		inds = np.where(d3result < 0)
+		d3result[inds] = 0.
+		filename="%s/%s_r%s_knife.dresult" % (dirstr,expstr,runstr)
+		np.savetxt(filename,dresult*d3result,fmt='%.3f')
+		'''
+		Left to do, find the argmax for each row (1024 dimension) and take a window +/- 2 from there and compute their weighted average paddle position of edge.
+		This then gets written to a file along with the scaling factor for that "row" from that sklearn method
+		'''
+
+
 		''' 
 		Now, centroid the hist over the values (rows) for each of the delay bins.  
 		Format this as a tiled operation multiply by the np.sum( h*np.tile(vbins,shape??), axis=1?? ) / np.sum(h, axis = 1??)
