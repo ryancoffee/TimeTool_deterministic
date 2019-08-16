@@ -160,9 +160,34 @@ def main():
 		centroids = np.zeros(nrows,dtype=float)
 		inds = np.where(denom>0)
 		centroids[inds] = num[inds]/denom[inds]
+
+		'''
+		Now getting rowscales i nthe fourier method
+		'''
+		filename="%s/%s_r%s_illumination.dat" % (dirstr,expstr,runstr)
+		header = 'rows\trowsums\tddrowsums, each row is 1024 long, so avg signal is the rowsum/1024'
+		f = np.fft.fftfreq(rowscales.shape[0])
+		bwd = .2
+		c2 = np.zeros(rowscales.shape[0],dtype=float)
+		inds = np.where(abs(f)<bwd)
+		c2[inds] = np.power(np.cos(f[inds]/bwd*np.pi/2),int(2))
+		DDROWSCALES = np.fft.fft(rowscales) * -1 * np.power(f,int(2)) * c2
+		ddrowscales = - np.fft.ifft(DDROWSCALES).real
+		inds = np.where(ddrowscales < 0)
+		ddrowscales[inds] = 0
+		inds = np.where(ddrowscales > 0) # for use in result computed below
+		num = np.fft.ifft( np.fft.fft(ddrowscales * rowscales) * c2 ).real
+		denom = np.fft.ifft( np.fft.fft( ddrowscales )* c2 ).real  	
+		result = np.zeros(rowscales.shape,dtype=float)
+		result[inds] = num[inds]/denom[inds]
+		'''
+		Done with scales
+		'''
+
+
 		filename="%s/%s_r%s_knife.centroids" % (dirstr,expstr,runstr)
-		header = "centroids"
-		np.savetxt(filename,np.column_stack((rows,centroids,rowscales)),fmt='%.3f',header = header)
+		header = "rows\tcentroids\tscales\tfouriermethod scales"
+		np.savetxt(filename,np.column_stack((rows,centroids,rowscales,result)),fmt='%.3f',header = header)
 		
 		print('Done saving for run ',runstr)
 	

@@ -64,9 +64,24 @@ def main():
 							np.savetxt(filename,rowsums,fmt='%i',header=header)
 							print('intermittent save at image {}'.format(nevent))
 
+			rowsums -= np.min(rowsums)
 			filename="%s/%s_r%s_illumination.dat" % (dirstr,expstr,runstr)
-			header = 'rowsums, each row is 1024 long, so avg signal is the rowsum/1024'
-			out = np.column_stack((rows,rowsums))
+			header = 'rows\trowsums\tddrowsums, each row is 1024 long, so avg signal is the rowsum/1024'
+			f = np.fft.fftfreq(rowsums.shape[0])
+			bwd = .2
+			c2 = np.zeros(rowsums.shape[0],dtype=float)
+			inds = np.where(abs(f)<bwd)
+			c2[inds] = np.power(np.cos(f[inds]/bwd*np.pi/2),int(2))
+			DDROWSUMS = np.fft.fft(rowsums) * -1 * np.power(f,int(2)) * c2
+			ddrowsums = - np.fft.ifft(DDROWSUMS).real
+			inds = np.where(ddrowsums<0)
+			ddrowsums[inds] = 0.
+			inds = np.where(ddrowsums>0) # for use in result computed below
+			num = np.fft.ifft( np.fft.fft(ddrowsums * rowsums) * c2 ).real
+			denom = np.fft.ifft( np.fft.fft( ddrowsums )* c2 ).real  	
+			result = np.zeros(rowsums.shape,dtype=float)
+			result[inds] = num[inds]/denom[inds]
+			out = np.column_stack((rows,rowsums,ddrowsums*1e3,result))
 			np.savetxt(filename,out,fmt='%i',header=header)
 			h,b = np.histogram(out,bins = 100)
 			filename="%s/%s_r%s_illumination.hist" % (dirstr,expstr,runstr)
