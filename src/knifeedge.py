@@ -1,12 +1,14 @@
 #!/reg/g/psdm/sw/releases/ana-current/arch/x86_64-rhel7-gcc48-opt/bin/python
 
-from psana import *;
 import numpy as np;
 from cmath import rect;
 import pdb as debug;
-from utility import *
 import re
 from sklearn.preprocessing import MinMaxScaler
+		
+from psana import *;
+from utility import *
+from types import *
 
 def main():
 	nprect = np.vectorize(rect)
@@ -93,8 +95,7 @@ def main():
 		np.savetxt(filename,np.column_stack((P,R)),fmt='%i',header=header)
 
 		row = 512
-		ii8 = np.iinfo(np.int8)
-		scaler = MinMaxScaler(feature_range = (ii8.min,ii8.max),copy = False)
+		scaler = MinMaxScaler(feature_range = (int8_t.min,int8_t.max),copy = False)
 		data = np.copy(R)
 		data = scaler.fit_transform(data)
 		filename="%s/%s_r%s_knife.scaled" % (dirstr,expstr,runstr)
@@ -108,7 +109,7 @@ def main():
 			nbins = nsteps//2 
 		pbins = np.arange(low,high+25,25)
 		pramp = np.tile(pbins[:-1],reps = (2**10,1))
-		vbins = np.arange(ii8.min,ii8.max,4)
+		vbins = np.arange(int8_t.min,int8_t.max,4)
 		vramp = np.tile(vbins[:-1],reps = (len(pbins)-1,1))
 		result = np.zeros((len(pbins)-1,2**10),dtype=float)
 		for row in range(0,2**10):
