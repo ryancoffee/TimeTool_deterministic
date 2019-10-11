@@ -47,6 +47,7 @@ def main():
             outname = m.group(2) + '.jpg'
             powername = m.group(2) + '.power'
             data = np.loadtxt(name,skiprows=skiprows)
+            cv2.imwrite(outdir + m.group(2) + '.orig.jpg', jpgnorm(np.copy(data)))
             DATA = np.fft.fft2(data,axes=(0,1))
             np.savetxt(outdir + powername,np.abs(DATA),fmt='%.3e')
             out = np.fft.ifft2(DATA*MASK,axes=(0,1)).real
@@ -54,26 +55,26 @@ def main():
             out /= maxs
             res = meanpool(out,poolkern)
             imres = np.zeros((res.shape[0],res.shape[1],3),dtype=float)
-            imres[:,:,0] = np.copy(res)
+            imres[:,:,0] = np.copy(res)*(res>0)
             maskedname = m.group(2) + '.filter0.dat'
             np.savetxt(outdir + maskedname,res,fmt='%.3e')
-            cv2.imwrite(outdir + m.group(2) + '.filter0.jpg', jpgnorm(res))
+            cv2.imwrite(outdir + m.group(2) + '.filter0.jpg', jpgnorm(res*(res>0)))
             out = np.fft.ifft2(DATA*DMASK,axes=(0,1)).real
             out /= maxs
             res = meanpool(out,poolkern)
-            imres[:,:,1] = np.copy(res)
+            imres[:,:,1] = np.copy(res)*(res>0)
             maskedname = m.group(2) + '.filter1.dat'
             np.savetxt(outdir + maskedname,res,fmt='%.3e')
-            cv2.imwrite(outdir + m.group(2) + '.filter1.jpg', jpgnorm(res))
+            cv2.imwrite(outdir + m.group(2) + '.filter1.jpg', jpgnorm(res*(res>0)))
             out = np.fft.ifft2(DATA*MDMASK,axes=(0,1)).real
             out /= maxs
             res = meanpool(out,poolkern)
-            imres[:,:,2] = np.copy(res)
+            imres[:,:,2] = np.copy(res)*(res>0)
             maskedname = m.group(2) + '.filter2.dat'
             np.savetxt(outdir + maskedname,res,fmt='%.3e')
-            cv2.imwrite(outdir + m.group(2) + '.filter2.jpg', jpgnorm(res))
+            cv2.imwrite(outdir + m.group(2) + '.filter2.jpg', jpgnorm(res*(res>0)))
             out = np.uint8(jpgnorm(imres))
-            cv2.imwrite(outdir + m.group(2) + '.allfilters.jpg', cv2.cvtColor(out,cv2.COLOR_YCrCb2RGB))
+            cv2.imwrite(outdir + m.group(2) + '.allfilters.jpg', out)# cv2.cvtColor(out,cv2.COLOR_YCrCb2RGB))
             
             print(outdir + outname)
     return
